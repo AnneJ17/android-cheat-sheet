@@ -19,7 +19,8 @@
   
 * **LiveData vs RxJava**
 
-  LiveData is somewhat similar to RxJava except that LiveData is lifecycle aware. LiveData excel on ViewModel layer, with its tight integration with Android lifecycles and ViewModel. RxJava provide more capabilities in transformations. We use RxJava in data source and repository layers, and it's transformed into LiveData (using LiveDataReactiveStreams) in ViewModels (before exposing data to activities/fragments).
+  - LiveData is somewhat similar to RxJava except that LiveData is lifecycle aware. LiveData excel on ViewModel layer, with its tight integration with Android lifecycles and ViewModel. Another advantage is that they automatically subscribe and unsubscribe on Activity life cycle events. LiveData does not give freedom to choose thread - only have current and UI thread and only one direction of switch "from current to UI". If a background service send a notification to a live data object it must use `postValue` method to ensure the value change is observed in the main thread.
+  - RxJava provide more capabilities in transformations. We use RxJava in data source and repository layers, and it's transformed into LiveData (using LiveDataReactiveStreams) in ViewModels (before exposing data to activities/fragments). RxJava’s approach to choose a thread during the subscription, not in time of the sending is much more appropriate. Unlike LiveData, you have to explicitly subscribe and unsubscribe - in `onResume` we can do `compositeDisposable.add(...)` and `onPause` we do `CompositeDisposable.dispose`. 
   
 * **How does LiveData in the ViewModel update the Activity?**
 
@@ -40,10 +41,9 @@
   - **Run-time**: Usually based on reflection which is simpler to use but slower at run-time or at compile-time (eg. Spring).
   - **Compile-time**: It is based on code generation, ie., all the heavy-weight operations are performed during compilation. Add complexity but performs faster (eg. Dagger)
   
-* **Singleton s DI**
+* **Singleton vs DI**
 
-  <ini>Singleton</ini>: 
-    - When using Singletons in codebase, you loose the insight of what methods are doing? For instance, when class ```Foo``` depends on ```Logger.getInstance()```, ```Foo``` is effectively hiding it's dependencies from consumers. This means you can't fully understand ```Foo``` or use it with confidence unless you read it's source and uncover the fact that it depends on Logger. 
+  When using Singletons in codebase, you loose the insight of what methods are doing? For instance, when class ```Foo``` depends on ```Logger.getInstance()```, ```Foo``` is effectively hiding it's dependencies from consumers. This means you can't fully understand ```Foo``` or use it with confidence unless you read it's source and uncover the fact that it depends on Logger. 
     The singleton pattern places a disproportionate emphasis on the ease of accessing objects. It completely eschews context by requiring that every consumer use an AppDomain-scoped object, leaving no options for varying implementations.
     Therefore Singleton pattern not only make the code harder to read, but also make it harder to unit test. And sometimes it promote hidden coupling, for example what if we need two objects at the complete opposite ends of your object graph to collaborate.
     
@@ -73,3 +73,117 @@ Create a class @Module that contains your method with @Provides in it.
   - @Component  - Bridge between @Module and @Inject
   - @Scope - Enables to create global and local singletons
   - @Qualifier - If different object of the same type are necessary
+  
+* **Coroutines**
+
+  Coroutines = Co + Routines. Here, **Co** means cooperation and **Routines** means functions. It means that when functions cooperate with each other, we call it as Coroutines. It's an optimized framework written over the actual threading by taking advantage of the cooperative nature of functions to make it light and yet powerful. So, we can say Coroutines are lightweight threads. A lightweight thread means it doesn't map on native thread (stackless), so it doesn't require context switching on the processor, so they are faster. Coroutines do not replace threads, it’s more like a framework to manage it.
+  
+* **Why use Coroutines?**
+
+  - Lightweight: You can run many coroutines on a single thread due to support for suspension, which doesn't block the thread where the coroutine is running. Suspending saves memory over blocking while supporting many concurrent operations.
+  - Fewer memory leaks: Use structured concurrency to run operations within a scope.
+  - Built-in cancellation support: Cancellation is propagated automatically through the running coroutine hierarchy.
+  - Jetpack integration: Many Jetpack libraries include extensions that provide full coroutines support. Some libraries also provide their own coroutine scope that you can use for structured concurrency.
+  - RxJava works on android and Java. Coroutines are based on Kotlin. 
+  - RXjava based on Observer pattern and well designed library and more complex. Greater learning curve. 
+  
+* **Difference b/w launch/join and async/await in Kotlin Coroutines*
+  - `launch` is used to fire and forget coroutine. It's like starting a new thread. If the code inside the `launch` terminates with exception, then it is treated like uncaught exception in a thread.`join` is used to wait for completion of the launched coroutine and it does not propagate its exception. However, a crashed child coroutine cancels its parent with the corresponding exception, too.
+
+
+
+* **Services**
+
+  Service is a app component that runs on the background. 
+
+* **Handler, Thread, Looper, and MessageQueue**
+
+  The main thread is nothing but just a handler thread. Main thread is responsible for handling events from all over the app like callbacks associated with the lifecycle
+
+JVM will first compile the code 
+to .class file using the compiler
+dex code to machine code by dvm
+dvm convert the compile code along with converting to machine code at the same time - ART
+ART is responsible for allocating memory to the application as well as deallocate the memory. Whenever the activity get destroyed, ART tell the garbage collector to deallocate the memory. 
+There is a problem. There are few instance where garbage collector will try to collect and want get to collect an object thinking that the object is live and shouldn't collect. Garbage collector is not able to collect objects and the memory get collected and we finally get out of memory. This is called memory leaks. 
+
+* **What is the problem with AsyncTask?**
+  It's goal was to make background Threads which could interact with Main(UI) thread. The most common use of async task is to have it runs a time-consuming operation that updates a portion of the UI when it's completed (in AsyncTask.onPostExecute()).
+  Async task is the major cause of memory leaks. Instead of using this, developers prefer using Coroutines and RxJava with schedulers. 
+  Below are some of the problems:
+  - **Rotation** - When the app is rotated, the activity is destroyed and recreated. When the activity is restarted your AsyncTask's reference to the activity is invalid, so onPostExecute() will have no effect on the new activity. This can be confusing if you are implicitly referencing the current Activity by having AsyncTask as an inner class of the Activity (memory leaks).The usual solution to this problem is to hold onto a reference to AsyncTask that lasts between configuration changes, which updates the target Activity as it restarts. There are a variety of ways to do this, though they either boil down to using a global holder (such as in the Application object) or passing it through Activity.onRetainNonConfigurationInstance(). For a Fragment-based system, you could use a retained Fragment (via Fragment.setRetainedInstance(true)) to store running AsyncTasks.
+  - **Memory/context leaks** - Even when the actviity that spawned the AsyncTask is dead, still the AsyncTask will continue to run even after exiting the entire application. The only way that an AsyncTask finishes early is if it is canceled via AsyncTask.cancel(). Also, any object references held by the AsyncTask will not be eligible for garbage collection until the task explicitly nulls those references or completes and is itself eligible for GC (garbage collection).If not cancelled it will bog down your app with unnecessary background tasks, or of leaking memory. 
+  - **Error Handling** - No out of the box solution for this. 
+  - **Concurrent AsyncTasks** - If you queue up more than 138 tasks before they can complete, your app will crash. Usually happen when loading bitmaps from net.
+
+
+* **RxJava and AsyncTask**
+
+  In android, all the long running tasks are performed in the background and the result is updated in the main thread. Typically, such tasks are handled by AsyncTask. But with this we had to maintain the Threads and Handlers. However, RxJava takes care of threading, synchronizations and thread-safety.<br>
+   RxJava is a java based implementation of reactive extensions - a library that follows Reactive programming principles to compose asynchronous and event-based programs by using observable sequence. Observables and Subscribers are the main building blocks. Observables for emmitting items and Subscribers for consuming the items. 
+  
+ * **How RxJava works**
+  
+    * Subscriber subscribes to Observable, then Observable calls Subscriber.onNext() for any number of items, if something goes wrong Subsciber.onError() is called and when the task is finished Subscriber.onCompleted() is called. 
+    * Operators are methods created for solving transformations and handling API calls problems. Some of the common operators - Observable, Flowable, Single.
+  <ini>Observable</ini> : Let us consider that We are making an API call and receiving the response. And that response is wrapped inside Observable type so that it can be processed by RxJava operators.
+  <ini>Flowable<ini> : Each operator solves different problem, Flowable solving Backpressure ( Backpressure happens when there are multiple responses come at a speed that observers cannot keep up ). In Flowable, BackPressure is handled using BackPressure Strategies — MISSING, ERROR, BUFFER, DROP, LATEST. BackPressure is Handled by anyone of the mentioned strategies. Flowable is useful when we are making pagination call.
+  <ini>Single</ini> : Single always either emits one value or an error. It returns Latest response for all requests. It is ideal for making search call.
+
+  Strong reference - 
+  Weak reference - inner class, bitmap, unregistered 
+  Leak cannary library - Android profiler
+  
+**Performance Issues** - memory, UI, thread, battery
+moved to dvm to art
+
+* **Firebase Cloud messaging**
+
+  Firebase Cloud Messaging (FCM) is a set of tools that sends push notifications and small messages upto 4kb in various platforms: Android, iOS, and web. Firebase is one of the simplest method to get notification. We as android developers prefer this method as this is very efficient and will not drain the battery of the device like polling (constantly requesting backend service for updates). 
+  Following is the architecture of the FCM:-
+    1. A service, API or console that sends messages to targeted devices.
+    2. The Firebase Cloud Messaging back end, where all the processing happens.
+    3. A transport layer that’s specific to each platform. In Android’s case, this is called the Android Transport Layer.
+    4. The SDK on the device where you’ll receive the messages. In this case, called the Android Firebase Cloud Messaging SDK.
+    
+* **What is TDD?**
+
+  Test Driven Development - Developing something that is driven by test. We describe each unit of the system through a failing test and make it pass with an implementation. The test will serve as a guidline of what to build
+  
+* **Why TDD?**
+  - TDD can help reduce bugs (Reliable)
+  - TDD can be our code guard: For instance, when somebody working on other feature unintentionally changes the behavior of the previously written features, will cause our test to fail as it is not working as intended. This is a red light to go on to production and this will let the other developers to fix the error. This will also give more confidence to change the software without any fear.
+  - TDD can act as code documentation (Readable):  In TDD, test are written step by step. If someone is unsure of how the code works, one can look over the tests written and understand the functionality of each unit. It gives insight of how a particular unit should work with both pass and fail tests (assertions). 
+    
+
+JVM
+Features of Kotlin
+null-safety
+extention-functions
+
+What is Gradle? 
+What is Manifest file? Is an xml configuration file. 
+What is res folder? Keep all the xml files needded for - Drawables, 
+What is Activity? Is the major UI component of the application. Contains 2 main part - 
+Activity vs fragment - modularity - Entire ui to subsections, reusability - smae fragment can be used in , adaptability -  
+manually adding fragment - <fragment tag in xml
+fragment life cycle and activity
+onAttach() - access the context of the activity
+onDetach() - 
+types of data that can pass in intent - primitive types, serialized types - convert the object into byte streams - java has it's on implementation for serializable. 
+serializable & parcelable - Parcelable give better performance needs 
+best way to pass data between fragments?
+Linear layout vs relative layout vs constraint layout
+constraint layout - optimize and flatten the view hierarchy - avoid nesting of the views to get better performance. 
+Relative layout - nested and have to position 
+
+List view vs recycler view 
+list view - by default 1000 objects for every row create in, display only vertically
+recycler view - viewholder mandatory, provide layout manger, item animate
+Adapetrs- Base dapter - parent - Array a
+
+4 ways to store data locally - Shared preference, Sqlite, Cotent Providers, External/Internal storage.
+
+
+Tell me about yourself - By passion Android Developer
+What is Activity life cycle? Track the state of the activity. 
