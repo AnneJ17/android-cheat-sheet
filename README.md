@@ -1,5 +1,83 @@
 # Android Cheat Sheet
 
+* **Kotlin vs Java**
+
+  Kotlin is a statically typed open source programming language developed by JetBrains. It runs on JVM and so can be used anywhere we use Java. 
+    - Concise - Eliminate boilerplate code
+    - Null safety - Aim to eliminate null pointer exception which is common in Java
+    - Interoperable - Kotlin is 100% compatible with existing Java code. Kotlin compiles to the exact same bytecode and making it interoperable in the JVM or on Android. 
+    - Smart Cast - It explicit typecast the immutable values and insert the values in its safe cast automatically
+    - Performance - In comparison with Java, the code compilation process is slower. For incremental compilation, Kotlin shows identical to Java or even slightly better results.
+    - Extension function - Kotlin allows developers to extend a class with new functionality via extension functions. It is done by prefixing the name of the class that needs to be extended to the name of the function being created. We can even extend the library classess. 
+    - Coroutines - Better way of managing intensive operations in Kotlin - coroutines. Coroutines are stackless, which means they demand lower memory usage as compared to threads. And therefore known as lightweight threads. 
+
+* **What is Gradle?** [*](https://www.geeksforgeeks.org/android-build-gradle/)
+
+  Gradle is a build tool to automate and manage the build process. It compiles the source code using appropriate tools, e.g., converts the kt files into dex files and compress all of them into a single file called apk. Following are the two types: 
+  1. Top-level build.gradle - Located in the root project directory and it's function is to define build configurations that will be applied to all the modules in the project.
+  2. Module-level build.gradle - Located in the project/module directory of the project and this is where all the needed dependencies for the application is mentioned and where the sdk versions (minimumSdk, maximumSdk, targettedSdk, versionCode, versionName) are declared.
+  
+* **What is Manifest file?** 
+
+  It is an application level configuration file. All the metadata of the application like appName, launch icon, activities, services, and permissions are found here.
+  
+* **What is res folder?** 
+
+  Keep all the xml files needded of your application which are used for designing or for storing data  
+    - Drawables: Include static contents (images)
+    - Layout: xml files that represents the UI
+    - Mipmap: launch icons
+    - Values: data files - colors.xml, strings.xml, styles.xml, dimens.xml
+  
+* **What is Activity?** 
+
+  Activities are the main UI component of the application. Whatever is visible to user's eye is coming from the activity. Each activity contains 2 main part - one is the business logic (kotlin/java class) and the other is the view/ui (layout/xml files)
+ 
+* **What is Activity life cycle?**
+
+  Contains various methods that we can use to track the state of the activity. If we wish to execute some logic then we can override these methods and we can have our own implementation. There are 7 lifecycle methods - onCreate(), onStart(), onResume(), onPause(), onStop(), onRestart(), onDestroy()
+  
+* **Intent**
+
+  Intent is the intention of what kind of operation we want to perform, ie., connecting with another application component from the current component. Through intent, one can start a new actvity, start a service, open a web page, camera. We can also pass data (primitive data in key value pair) between actcivities. There are two types of intent:- 
+  1. Explicit intent - We know both the action and the target component
+  2. Implicit inetnt - Know the action (opening 3rd party components) but don't know the target component
+  
+  * **Types of data that can pass in intent** 
+  
+  - Primitive types - we can pass primitive types via event but have to use serializable or parcelable to pass objects.
+  - Serializables - have to make the object's class implement Serializable. Itconvert the object into byte streams - java has it's on implementation for serializable. Unfortunately, this approach is slow.
+  - Parcelable - have to implement parcelablel interface. `writeToParce` responsible for serializing the data, and `Parcelable.Creator` is responsible for desirializing. Parcelable give better performance, however we need to manually implement it according to our needs.
+
+* **Passing data between fragments**
+  
+
+* **Fragment**
+  Fragment is a piece of an activity's UI which gives modularity to your activity. 
+  - modularity - Entire ui to subsections, 
+  - reusability - smae fragment can be used in , 
+  - adaptability -  
+manually adding fragment - <fragment tag in xml
+fragment life cycle and activity
+onAttach() - access the context of the activity
+onDetach() - 
+
+* **Linear layout vs relative layout vs constraint layout** 
+  - LinearLayout - used when we want to arrange the views/widgets in a linear fashion either horizontal or vertical
+  - constraint layout - optimize and flatten the view hierarchy - avoid nesting of the views to get better performance. 
+  - Relative layout - nested and have to position 
+
+List view vs recycler view 
+list view - by default 1000 objects for every row create in, display only vertically
+recycler view - viewholder mandatory, provide layout manger, item animate
+* **Adapetrs**
+  Adapters acts like a bridge that connects two incompatible classes. 
+  Some type of adapters are Base dapter (parent), Array adapter
+
+4 ways to store data locally - Shared preference, Sqlite, Cotent Providers, External/Internal storage.
+* **Shared Preference and Sqlite**
+
+
 * **LiveData, MutableLiveData and MediatorLiveData**
 
   The below relation is taken from [Android Developer Site](https://developer.android.com/reference/android/arch/lifecycle/MediatorLiveData)
@@ -77,6 +155,7 @@ Create a class @Module that contains your method with @Provides in it.
 * **Coroutines**
 
   Coroutines = Co + Routines. Here, **Co** means cooperation and **Routines** means functions. It means that when functions cooperate with each other, we call it as Coroutines. It's an optimized framework written over the actual threading by taking advantage of the cooperative nature of functions to make it light and yet powerful. So, we can say Coroutines are lightweight threads. A lightweight thread means it doesn't map on native thread (stackless), so it doesn't require context switching on the processor, so they are faster. Coroutines do not replace threads, it’s more like a framework to manage it.
+  Coroutines are able to perform long-running and intensive tasks by suspending execution without blocking the thread and then resuming the execution at some later time. It allows the creation of non-blocking asynchronous code that appears to be synchronous.
   
 * **Why use Coroutines?**
 
@@ -87,10 +166,8 @@ Create a class @Module that contains your method with @Provides in it.
   - RxJava works on android and Java. Coroutines are based on Kotlin. 
   - RXjava based on Observer pattern and well designed library and more complex. Greater learning curve. 
   
-* **Difference b/w launch/join and async/await in Kotlin Coroutines*
+* **Difference b/w launch/join and async/await in Kotlin Coroutines**
   - `launch` is used to fire and forget coroutine. It's like starting a new thread. If the code inside the `launch` terminates with exception, then it is treated like uncaught exception in a thread.`join` is used to wait for completion of the launched coroutine and it does not propagate its exception. However, a crashed child coroutine cancels its parent with the corresponding exception, too.
-
-
 
 * **Services**
 
@@ -155,35 +232,6 @@ moved to dvm to art
   - TDD can be our code guard: For instance, when somebody working on other feature unintentionally changes the behavior of the previously written features, will cause our test to fail as it is not working as intended. This is a red light to go on to production and this will let the other developers to fix the error. This will also give more confidence to change the software without any fear.
   - TDD can act as code documentation (Readable):  In TDD, test are written step by step. If someone is unsure of how the code works, one can look over the tests written and understand the functionality of each unit. It gives insight of how a particular unit should work with both pass and fail tests (assertions). 
     
-
-JVM
-Features of Kotlin
-null-safety
-extention-functions
-
-What is Gradle? 
-What is Manifest file? Is an xml configuration file. 
-What is res folder? Keep all the xml files needded for - Drawables, 
-What is Activity? Is the major UI component of the application. Contains 2 main part - 
-Activity vs fragment - modularity - Entire ui to subsections, reusability - smae fragment can be used in , adaptability -  
-manually adding fragment - <fragment tag in xml
-fragment life cycle and activity
-onAttach() - access the context of the activity
-onDetach() - 
-types of data that can pass in intent - primitive types, serialized types - convert the object into byte streams - java has it's on implementation for serializable. 
-serializable & parcelable - Parcelable give better performance needs 
-best way to pass data between fragments?
-Linear layout vs relative layout vs constraint layout
-constraint layout - optimize and flatten the view hierarchy - avoid nesting of the views to get better performance. 
-Relative layout - nested and have to position 
-
-List view vs recycler view 
-list view - by default 1000 objects for every row create in, display only vertically
-recycler view - viewholder mandatory, provide layout manger, item animate
-Adapetrs- Base dapter - parent - Array a
-
-4 ways to store data locally - Shared preference, Sqlite, Cotent Providers, External/Internal storage.
-
-
-Tell me about yourself - By passion Android Developer
-What is Activity life cycle? Track the state of the activity. 
+ * **Mockito**
+ 
+   Used in Junit testing. 
