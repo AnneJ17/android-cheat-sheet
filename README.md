@@ -17,6 +17,10 @@
   1. Top-level build.gradle - Located in the root project directory and it's function is to define build configurations that will be applied to all the modules in the project.
   2. Module-level build.gradle - Located in the project/module directory of the project and this is where all the needed dependencies for the application is mentioned and where the sdk versions (minimumSdk, maximumSdk, targettedSdk, versionCode, versionName) are declared.
   
+* **ART vs Dalvik**
+
+  Dalvik behaves even worse in terms of memory management and Garbage Collection. 
+  
 * **What is Manifest file?** 
 
   It is an application level configuration file. All the metadata of the application like appName, launch icon, activities, services, and permissions are found here.
@@ -45,17 +49,33 @@
   Contains various methods that we can use to track the state of the activity. If we wish to execute some logic then we can override these methods and we can have our own implementation. There are 7 lifecycle methods - onCreate(), onStart(), onResume(), onPause(), onStop(), onRestart(), onDestroy()
   
 * **What is a service?**
-  A service is one of the Android component that performs long running task in the background, <ini>even when the user is not interacting with the application</ini>. By default, service runs on the main thread and should create a new thread if performing intensive or blocking operations to avoid ANR errors. 
+  A service is one of the Android component that performs long running task in the background, <ini>even when the user is not interacting with the application</ini>. By default, service runs on the main thread and should create a new thread if performing intensive or blocking operations to avoid ANR errors. The service lifecycle—from when it's created to when it's destroyed—can follow either of these two paths: started service, bound service. 
   Note: if you want to run a task outside of the main thread, but only while the application is running, use a thread. 
   
 * **Types of Services**
-  - Foreground Services:  A foreground service performs operation that is noticeable to the user. It must provide a notification, which is placed under the "Ongoing" heading, which means that the notification cannot be dismissed unless the service is either stopped or removed from the foreground. (e.g. audio app using foreground service to play audio track)
+  - Foreground Services:  A foreground service performs operation that is noticeable to the user. It must provide a notification, which is placed under the "Ongoing" heading, which means that the notification cannot be dismissed unless the service is either stopped or removed from the foreground. (e.g. audio app using foreground service to play audio track).
   - Background Services: A background service performs an operation that isn't directly noticed by the user. (e.g. app using background service to compact its storage)
-  - Bound Services: 
+  - Bound Services:  better choice for more complex two-way interactions between activities and services. It allows the launching component to interact with, and receive results from the service. Started service does not generally return results or permit interaction with the component that launched it (requires complex programming).
+  
+* **Ways to create bound services**
+
+  There are 3 ways you can define the interface
+    1. Extending the binder class - If your service is private to your own application and runs in the same process as the client 
+    2. Using a Messenger - If you want to work across different processes, use Messenger. It creates a queue of all the client requests in a single thread, so the service receives requests one at a time.
+    3. Using AIDL - If you want your service to handle multiple requests simultaneously, then use AIDL. Make sure your service is thread-safe and capable of multi-threading.
+
+* **IntentServices**
+
+  The IntentService is used to perform a certain task in the background. Once done, the instance of IntentService terminates itself automatically. An example for its usage would be downloading certain resources from the internet. It offers onHandleIntent() method which will be asynchronously called by the Android system.
   
 * **What is content provider?**
 
-  Content providers are used when there is a need to share data between multiple applications. It let you centralize content in one place and have many different applications access it as needed. A content provider behaves very much like a database where you can query it, edit its content, as well as add or delete content using insert(), update(), delete(), and query() methods. In most cases this data is stored in an SQlite database.
+  Content providers are used when there is a need to share data between multiple applications as Android-databases (Sqlite) created in Android are visible only to the application that created them. It let you centralize content in one place and have different applications access it. When you want to access data in a content provider, you use the ContentResolver object in your application's Context to communicate with the provider as a client. The ContentResolver methods provide the basic "CRUD" (create, retrieve, update, and delete) functions of persistent storage. In most cases this data is stored in an SQlite database. The CursorLoader objects rely on content providers to run asynchronous queries and then return the results to the UI layer in your application.
+  Actvity/Fragment <---> CursorLoader <---> ContentResolver <---> ContentProvider <---> DataStorage
+  
+* **Advantages of content providers**
+  - Content providers offer granular control over the permissions for accessing data.
+  - extra level of abstraction over your data to make it easier to change internally (changing underlying database structure).
   
 * **What is broadcast receiver?**[*](https://developer.android.com/guide/components/broadcasts)
   
@@ -110,22 +130,22 @@
   - Drawing stage: `onDraw()` - after measuring and positioning all of the views, each view happily draws itself.l This method provides a canvas for that. `invalidate()`: makes Android redraw the view by calling onDraw()
  
 * **Fragment**
-  Fragment is used as a part of your application's UI that can be placed in an activity. 
+  Fragment segments your app into multiple, independent screens that are hosted within an Activity.
   - modularity - divide UI to subsections 
   - reusability - same fragment can be used in other activities
   - adaptability -  easily adjust your UI to the screen it is running on.
   
 * **Fragment lifecycle**
   - onAttach() this is the method which make sure the fragment is attached with the activity and Where fragment can access the context of the activity
-  - onCreate()
-  - onCreateView() - to setup the layout of the fragment
-  - onActivityCreated()
-  - onStart()
-  - onResume()
-  - onPause()
-  - onStop()
-  - onDestroyView()
-  - onDestroy()
+  - onCreate() - initial creation of the fragment
+  - onCreateView() - setup the layout of the fragment
+  - onActivityCreated() - creates and returns the view hierarchy associated with the fragment.
+  - onStart() - makes the fragment visible to the user
+  - onResume() - makes the fragment begin interacting with the user
+  - onPause() - fragment is no longer interacting with the user either because its activity is being paused or a fragment operation is modifying it in the activity
+  - onStop() - fragment is no longer visible to the user either because its activity is being stopped or a fragment operation is modifying it in the activity
+  - onDestroyView() - allows the fragment to clean up resources associated with its View
+  - onDestroy() - called to do final cleanup of the fragment's state
   - onDetach() - when fragment loose the context of the activity
   
 * **Passing data between fragments**
@@ -140,21 +160,35 @@
   - constraint layout - optimize and flatten the view hierarchy - avoid nesting of the views to get better performance. 
   - Relative layout - nested and have to position it, 
   - Framelayout - container as a placeholder as it's an empty layout
+  
+* **When to use coordinate layout**
+  
+  Coordinate layout position top-level application widgets, such as AppBarLayout and FloatingActionButton. 
 
-List view vs recycler view 
-list view - by default 1000 objects for every row create in, display only vertically
-recycler view - viewholder mandatory, provide layout manger, item animate
+* **List view vs recycler view**
 
-ListView - diplay all the items in a Scrollable fasshion
-Recycler view - advanced form of recycler view and is memory efficient coz it keeps on recycling the view as the view is gotten from the view holder. ViewHolder holds the view and when the recycler view recycles it gets the view from the ViewHolder. We have different layout type that we can use Gridlayout, staggered layout, linear layout.
+  * <ini>ListView</ini> - displays all the items vertically in a scrollable fashion and creates view for each items.
+  * <ini>RecyclerView</ini> - It's an advanced form of list view.
+    1. Reuses cells while scrolling up/down - this is possible with implementing View Holder in the ListView adapter, but it was an optional thing, while in the RecycleView it's the default way of writing adapter. Therefore, memory efficient because it keeps on recycling the view as the view is gotten from the view holder. ViewHolder holds the view and when the recycler view recycles it gets the view from the ViewHolder.
+    2. Decouples list from its container - so you can put list items easily at run time in the different containers (linearLayout, gridLayout, staggeredLayout) with setting LayoutManager.
+    3. Animates common list actions - Animations are decoupled and delegated to ItemAnimator.
+    4. Item decoration - gives us huge control to develop and have custom divider, space, borders etc
+    5. OnItemTocuhListener - handle the user interaction and to enhance user experience. Useful for gestural manipulation of item views (on slide delete)
 
 * **Adapetrs**
-  Adapters acts like a bridge that connects two incompatible classes. 
-  Some type of adapters are Base dapter (parent), Array adapter
 
-4 ways to store data locally - Shared preference, Sqlite, Cotent Providers, External/Internal storage.
+  Adapters acts like a bridge that connects two incompatible classes to work together. Some types of adapters are 
+    - BaseAdapter: abstract class which implements ListAdapter and SpinnerAdapter Interface. Hence, we may use it for implementing both ListView and Spinner.
+    - CursorAdapter: more appropriate when there is a database because it does not load all the records as ArrayAdapter. It loads only the visible records, or the records you are querying,
+    - Array Adapter - Simple adapter where we pass context, layout, data 
+    - FragmentPageAdapter - ViewPager 
+    - RecyclerView adapter - 
+
 * **Shared Preference and Sqlite**
-
+  
+  There are 4 ways to store data locally - Shared preference, Sqlite, Cotent Providers, External/Internal storage.<br>
+  &nbsp;&nbsp;&nbsp;We use shared preference for saving small amount of data like app setting (theme), login status, user preference (notification status). It saves the data in form of key value pair and hence we can save only primitive type data like string, boolean, integers etc but we cannot store an object. Whereas, Sqlite is a relational database where we can store huge amount of data.
+  
 
 * **LiveData, MutableLiveData and MediatorLiveData**
 
@@ -182,11 +216,15 @@ Recycler view - advanced form of recycler view and is memory efficient coz it ke
 
   When we register the Observer in our Activity, we need to override the method onChanged(). The method onChanged() would get trigger whenever the LiveData is changed. Thus in the onChanged(), we can update the changed LiveData onto the View.
   
+* **Data Binding **
+  
+  Bind UI components in your layouts to data sources in your app using a declarative format.
+  
 * **MVP vs MVVM**
   MVP - Model View Presebter: Presenter is like a bridge between the view and the model. There is one to one relation between the view and the presenter and therefore is tightly coupled. 
   MVVM - Each of the component is loosely coupled. VM holds the interaction between the view and the model. And all the business logic goes here. VM is lifecycle aware in which we can use live data and databinding and it is also recommended by Google.
   
-* **Hwo to use Retrofit and coroutines to make network calls and how we use it in MVVM
+* **How to use Retrofit and coroutines to make network calls and how we use it in MVVM
 **Model** All your data goes in this layer; **Viewmodel** contains the business logic; **View** - Activities, fragments, layouts
 Model - Repository and data lives here. Inside the repository we make retrofit calls. Set the data in LiveData. In ViewModel - we get the data from the repository. 
 View - call the viewmodel to get the data from the livedata which you display in your view
@@ -278,7 +316,6 @@ There is a problem. There are few instance where garbage collector will try to c
   
   Defferable, asynchronous task that one can schedule when the work's constraints are satisfied. 
   
-  
 * **What is the problem with AsyncTask?**
   It's goal was to make background Threads which could interact with Main(UI) thread. The most common use of async task is to have it runs a time-consuming operation that updates a portion of the UI when it's completed (in AsyncTask.onPostExecute()).
   Async task is the major cause of memory leaks. Instead of using this, developers prefer using Coroutines and RxJava with schedulers. 
@@ -291,24 +328,58 @@ There is a problem. There are few instance where garbage collector will try to c
 
 * **RxJava and AsyncTask**
 
-  In android, all the long running tasks are performed in the background and the result is updated in the main thread. Typically, such tasks are handled by AsyncTask. But with this we had to maintain the Threads and Handlers. However, RxJava takes care of threading, synchronizations and thread-safety.<br>
-   RxJava is a java based implementation of reactive extensions - a library that follows Reactive programming principles to compose asynchronous and event-based programs by using observable sequence. Observables and Subscribers are the main building blocks. Observables for emmitting items and Subscribers for consuming the items. 
+  In android, all the long running tasks are performed in the background and the result is updated in the main thread. Typically, such tasks are handled by `AsyncTask`. But with this we had to maintain the Threads and Handlers. However, RxJava takes care of threading, synchronizations and thread-safety.<br>
+   `RxJava` is a java based implementation of reactive extensions - a library that follows Reactive programming principles to compose asynchronous and event-based programs by following Observer pattern. Observables and Subscribers are the main building blocks. Observables for emmitting items and Subscribers for consuming the items. 
+   
+* **What is Reactive Programming?**
+
+  It is an event based asynchronous event-based programming. Everything you see is an asynchronous data stream, which can be observed and an action will be taken place when it emits values. You can create data stream out of anything; variable changes, click events, http calls, data storage, errors and what not. When it says asynchronous, that means every code module runs on its own thread thus executing multiple code blocks simultaneously. Therfeore, the amount of time taken to complete all the tasks is equivalent to the longer task in the list.
   
 * **How RxJava works**
-  
     * Subscriber subscribes to Observable, then Observable calls Subscriber.onNext() for any number of items, if something goes wrong Subsciber.onError() is called and when the task is finished Subscriber.onCompleted() is called. 
     * Operators are methods created for solving transformations and handling API calls problems. Some of the common operators - Observable, Flowable, Single.
   <ini>Observable</ini> : Let us consider that We are making an API call and receiving the response. And that response is wrapped inside Observable type so that it can be processed by RxJava operators.
   <ini>Flowable<ini> : Each operator solves different problem, Flowable solving Backpressure ( Backpressure happens when there are multiple responses come at a speed that observers cannot keep up ). In Flowable, BackPressure is handled using BackPressure Strategies — MISSING, ERROR, BUFFER, DROP, LATEST. BackPressure is Handled by anyone of the mentioned strategies. Flowable is useful when we are making pagination call.
   <ini>Single</ini> : Single always either emits one value or an error. It returns Latest response for all requests. It is ideal for making search call.
+  
+* **Key components of RxJava**
+  - Observable: Observable is a data stream that do some work and emits data.
+  - Observer: OnContrary to Observable, Observer receives the data emitted by the Observable.
+  - Subscription: The bonding between Observable and Observer is called as Subscription. There can be multiple Observers subscribed to a single Observable.
+  - Operator / Transformation: Operators modifies the data emitted by Observable before an observer receives them.
+  - Schedulers: Schedulers decides the thread on which Observable should emit the data and on which Observer should receives the data i.e background thread, main thread etc.,
 
+* **Schedulers**
+  Schedulers basically decides on which thread a task runs, whether main thread or backgournd thread. They are introduced in RxAndroid (AndroidSchedulers.mainThread()) which plays major role in supporting multithreading concept in android applications. List of schedulers: 
+  - Schedulers.io() - Used for CPU-intensive works like network calls, database operations, reading disks/files. Maintaings pool of threads
+  - AndroidSchedulers.mainThread() - provides access to the main thread. Jobs like updating UI, user interaction.
+  
+  Disposables - Used to dispose the subscription when Observer no longer wants to listen to Observable. It avoids memory leaks. 
+  
   Strong reference - 
   Weak reference - inner class, bitmap, unregistered 
   Leak cannary library - Android profiler
   
-**Performance Issues** - memory, UI, thread, battery
-moved to dvm to art
+* **Converting RxJava to LiveData**
+* **Advantages and Disadvantages of RxJava**
+* **Types of observables**
+* **Types of operators**
 
+  - Filter: 
+  - Buffer: Buffer gathers items emitted by an Observable into batches and emit the batch instead of emitting one item at a time.
+  - Debounce: Debounce operators emits items only when a specified timespan is passed. It's usually used when the Observable is rapidly emitting items but you are only interested in receiving them in timely manner (e.g. Instant search).
+  
+* **RxJava map opeartors** [*](https://www.androidhive.info/RxJava/map-flatmap-switchmap-concatmap/)
+  FlatMap, ConcatMap, SwitchMap - instead of returning the modified item, it returns the Observable itself which can emit data again
+  - Map: Used to alter the emitted data. It modifies each item emitted by a source Observable and emits the modified item.
+  - FlatMap:  Used when the order is not important and want to send all the network calls simultaneously
+  - ConcatMap: Unlike FlatMap, maintains the order of items and waits for the current Observable to complete its job before emitting the next one. more suitable when you want to maintain the order of execution.
+  - SwitchMap: Used when you want to discard the response and consider the latest one. It oneunsubscribe from previous source Observable whenever new item started emitting, thus always emitting the items from current Observable (e.g. Instant search).
+
+* **Firebase**
+  
+  Firebase is a toolset to buil, improve and grow applications (ios, android, web) cross platform and gives you services that normally a developer would have to build themselves. This includes authentication, databases, analytics, push notifications. The services are hosted in cloud, and scale with little to no effort.
+  
 * **Firebase Cloud messaging**
 
   Firebase Cloud Messaging (FCM) is a set of tools that sends push notifications and small messages upto 4kb in various platforms: Android, iOS, and web. Firebase is one of the simplest method to get notification. We as android developers prefer this method as this is very efficient and will not drain the battery of the device like polling (constantly requesting backend service for updates). 
@@ -317,6 +388,9 @@ moved to dvm to art
     2. The Firebase Cloud Messaging back end, where all the processing happens.
     3. A transport layer that’s specific to each platform. In Android’s case, this is called the Android Transport Layer.
     4. The SDK on the device where you’ll receive the messages. In this case, called the Android Firebase Cloud Messaging SDK.
+  
+**Performance Issues** - memory, UI, thread, battery
+moved to dvm to art
     
 * **What is TDD?**
 
@@ -332,11 +406,8 @@ moved to dvm to art
    Used in Junit testing. 
    
 * **What is REST API**
-  I have experience in consuming REST API. REST stands for REpresentational State Transfer. It doesn't have a state. Once you make an authentication, you have to repeat every time you make a call.
+  REST stands for REpresentational State Transfer. It is an architectural style that defines constraints for creating web services. It is stateless, i.e, no client session data is stored on the server (eg. Once you make an authentication, you have to repeat every time you make a call).
   Every data is an entity. 
-  
-* **What is bound services and **
-* **What is foreground and background service introduced in Orea**
 
 * **Code Review**
    
@@ -346,3 +417,7 @@ moved to dvm to art
    * Written enough test cases
    * Any security issues - 
    Any performance issues - are there any memory leaks, threads, battery, UI
+   
+* **Memory Management**
+  
+  In Android, bitmaps represent the largest contiguous blocks of memory. They occupy heaps, which results in lots of contention to find free space to allocate new bitmaps as we scroll.This then results in more GC events so it can free up memory to provide the necessary space.
