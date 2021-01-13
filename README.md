@@ -68,6 +68,16 @@
 
   The IntentService is used to perform a certain task in the background. Once done, the instance of IntentService terminates itself automatically. An example for its usage would be downloading certain resources from the internet. It offers onHandleIntent() method which will be asynchronously called by the Android system.
   
+* **Services**
+
+  Service is a app component that runs on the background. 
+  Bound service - Allows other components to bind it to the bound service to get some functionalities. One service can have multiple clients. Whenever the last component unbounds, that service is stopped. Local bound - client and service in same application, remote bound - AIDL - to connect to the client. When implementing AIDL we want to keep some steps.
+  1. Create an interface  - Implement the remote service
+  2. class extending service - 
+  
+* **Internal and External storage**
+  
+  
 * **What is content provider?**
 
   Content providers are used when there is a need to share data between multiple applications as Android-databases (Sqlite) created in Android are visible only to the application that created them. It let you centralize content in one place and have different applications access it. When you want to access data in a content provider, you use the ContentResolver object in your application's Context to communicate with the provider as a client. The ContentResolver methods provide the basic "CRUD" (create, retrieve, update, and delete) functions of persistent storage. In most cases this data is stored in an SQlite database. The CursorLoader objects rely on content providers to run asynchronous queries and then return the results to the UI layer in your application.
@@ -161,7 +171,7 @@
   - Relative layout - nested and have to position it, 
   - Framelayout - container as a placeholder as it's an empty layout
   
-* **When to use coordinate layout**
+* **When to use coordinate layout?**
   
   Coordinate layout position top-level application widgets, such as AppBarLayout and FloatingActionButton. 
 
@@ -216,13 +226,29 @@
 
   When we register the Observer in our Activity, we need to override the method onChanged(). The method onChanged() would get trigger whenever the LiveData is changed. Thus in the onChanged(), we can update the changed LiveData onto the View.
   
-* **Data Binding **
+* **Data Binding**
   
-  Bind UI components in your layouts to data sources in your app using a declarative format.
+  Bind UI components in your layouts to data sources in your app using a declarative format. Data Binding is the process that establishes a connection between the UI and business logic. When the data changes it's vlaue, the elements that are bound to the data reflect changes automatically.  
   
 * **MVP vs MVVM**
-  MVP - Model View Presebter: Presenter is like a bridge between the view and the model. There is one to one relation between the view and the presenter and therefore is tightly coupled. 
-  MVVM - Each of the component is loosely coupled. VM holds the interaction between the view and the model. And all the business logic goes here. VM is lifecycle aware in which we can use live data and databinding and it is also recommended by Google.
+  MVP - Model View Presenter: Presenter is like a bridge between the view and the model. There is one to one relation between the view and the presenter and therefore is tightly coupled. And is more verbose as each view needs a presenter. 
+  MVVM - Model View ViewModel: Each of the component is loosely coupled and follows event-driven pattern. VM holds the interaction between the view and the model. And all the business logic goes here. VM is lifecycle aware in which we can use live data and databinding and it is also recommended by Google.ViewModel doesn’t have to know anything about the View and has no reference to View classes
+  
+* **Rules for View-ViewModel communication**
+  1. View should not have any logic in it. All logic for the view happens in ViewModel.
+  2. In response to events view does nothing except notifying view-model by calling a method. ViewModel doesn’t have to know anything about the View and has no reference to View classes. View does not pass any view related classes to view model.
+  3. ViewModel uses live data as the main way to communicate to view.
+  4. View can call view-model whenever it needs something. ViewModel can provide helper methods for the view.
+ 
+ * **Login uisng MVVM steps**
+
+  Two-way Data Binding allows us to bind objects in the XML layouts such that the object can send data to the layout, and vice versa.
+  
+  1. Enable databinding to true in Gradle file and also need to add dependency for lifecycle components. 
+  2. We will have a Model would hold the user’s email and password
+  2. Create a class that extends ViewModel. And we create LiveData object in the ViewModel and after that, connect your View to this LiveData
+  3. XML file: Databinding - the layout will be wrapped inside <layout> tag and inside the <data> tag will provide the viewmodel path for "type". It takes input from the UI using DataBinding “@=”, stores it in LiveData and displays back on the UI. ViewModel binds the data to the View.
+  4. Activity - With DataBinding, the ActivityMainBinding class is auto-generated from the layout. We get the view model by doing something like ViewModelProviders.of(this).get(LoginViewModel.class); in the Observer we can override the onChanged() method
   
 * **How to use Retrofit and coroutines to make network calls and how we use it in MVVM
 **Model** All your data goes in this layer; **Viewmodel** contains the business logic; **View** - Activities, fragments, layouts
@@ -250,7 +276,7 @@ View - call the viewmodel to get the data from the livedata which you display in
     The singleton pattern places a disproportionate emphasis on the ease of accessing objects. It completely eschews context by requiring that every consumer use an AppDomain-scoped object, leaving no options for varying implementations.
     Therefore Singleton pattern not only make the code harder to read, but also make it harder to unit test. And sometimes it promote hidden coupling, for example what if we need two objects at the complete opposite ends of your object graph to collaborate.
     
-* **What is Dagger 2**
+* **What is Dagger2?**
 
   Dagger is a fully static, compile-time dependency injection framework for both Java and Android. It is an adaptation of an earlier version created by Square and now maintained by Google. It frees you from writing tedious and error prone boilerplate code.
 
@@ -293,13 +319,6 @@ Create a class @Module that contains your method with @Provides in it.
   
 * **Difference b/w launch/join and async/await in Kotlin Coroutines**
   - `launch` is used to fire and forget coroutine. It's like starting a new thread. If the code inside the `launch` terminates with exception, then it is treated like uncaught exception in a thread.`join` is used to wait for completion of the launched coroutine and it does not propagate its exception. However, a crashed child coroutine cancels its parent with the corresponding exception, too.
-
-* **Services**
-
-  Service is a app component that runs on the background. 
-  Bound service - Allows other components to bind it to the bound service to get some functionalities. One service can have multiple clients. Whenever the last component unbounds, that service is stopped. Local bound - client and service in same application, remote bound - AIDL - to connect to the client. When implementing AIDL we want to keep some steps.
-  1. Create an interface  - Implement the remote service
-  2. class extending service - 
 
 * **Handler, Thread, Looper, and MessageQueue**
 
@@ -405,6 +424,12 @@ moved to dvm to art
  
    Used in Junit testing. 
    
+* **Mock vs. Stub vs. Spy**
+
+  - Mock: A mock is a dummy class replacing a real one, returning something like null or 0 for each method call.
+  - Stub: A stub is a dummy class providing some more specific, prepared or pre-recorded, replayed results to certain requests under test. 
+  - Spy: A spy is kind of a hybrid between real object and stub, i.e. it is basically the real object with some (not all) methods shadowed by stub methods.
+  
 * **What is REST API**
   REST stands for REpresentational State Transfer. It is an architectural style that defines constraints for creating web services. It is stateless, i.e, no client session data is stored on the server (eg. Once you make an authentication, you have to repeat every time you make a call).
   Every data is an entity. 
@@ -421,3 +446,49 @@ moved to dvm to art
 * **Memory Management**
   
   In Android, bitmaps represent the largest contiguous blocks of memory. They occupy heaps, which results in lots of contention to find free space to allocate new bitmaps as we scroll.This then results in more GC events so it can free up memory to provide the necessary space.
+  
+* **Lint Tool**
+  
+  The lint tool checks your Android project source files for potential bugs and optimization improvements for correctness, security, performance, usability, accessibility, and internationalization. When using Android Studio, configured lint and IDE inspections run whenever you build your app
+  
+* **How does you take updated with latest technology**
+  
+  Google IO conference - 2019: Introduced dark theme, smart replies - , video captioning in video calls
+  News letters, website - ProAndroid, 
+  
+* **Github vs Git**
+
+  Git is a distributed version control system or source code management system. Whereas, gitHub is a hosting service for Git repositories. In short - Git is the tool, GitHub is the service for projects that use Git.
+ 
+  
+* **Rebase and merge**
+
+  Rebase - Moving or combining a sequence of commits to a new base commit. For instance, if you started doing some development and then another developer made an unrelated change. You probably want to pull and then rebase to base your changes from the current version from the repository.
+  Merge - Merging two different branches. For example, let's say you have created a branch for the purpose of developing a single feature. When you want to bring those changes back to master, you probably want merge 
+  
+  Differences:
+    - Merge preserves the branches while Rebase won't. 
+    
+* **What is Accessibility Service?**
+  
+  An Accessibility Service assists users with disabilities in using Android devices and apps. It is a long-running privileged service that helps users process information on the screen and lets them to interact meaningfully with a device.
+  - Switch Access: allows to interact with devices using one or more switches.
+  - Voice Access (beta): allows to control a device with spoken commands.
+  - Talkback: a screen reader commonly used by visually impaired or blind users.
+  
+* **Interceptors**
+
+   Interceptors are a powerful mechanism that can monitor, rewrite, and retry the API call. So basically, when we do some API call, we can monitor the call or perform some tasks (watch between the client and server). The common use-cases are Logging the errors centrally, Caching the response
+
+* **Caching mechanism**
+  - Memory Cache: It keeps the data in the memory of the application. If the application gets killed, the data is removed. Useful only in the same session of application usage. Memory cache is the fastest cache to get the data as this is in memory.
+  - Disk Cache: It saves the data to the disk. If the application gets killed, the data is retained. Useful even after the application restarts. Slower than memory cache, as this is I/O operation.
+  
+* **Advantages of Caching**
+  - Reduce network calls: We can reduce the network calls by caching the network response.
+  - Fetch the data very fast
+
+attching viewmodel to actvity or fragment?
+Fragment - 
+
+
