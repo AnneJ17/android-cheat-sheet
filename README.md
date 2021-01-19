@@ -21,6 +21,21 @@
 
   Dalvik behaves even worse in terms of memory management and Garbage Collection. 
   
+* **Android SDK**
+  
+  The Android SDK is a collection of software development tools and libraries required to develop Android applications. It comprises all the tools necessary to code programs from scratch and even test them.<br>
+  Components of Android SDK:
+    - Android SDK Tools: includes a complete set of development and debugging tools for Android, and is included with Android Studio
+    - SDK Build Tools: for building components for your Android app
+    - SDK Platform-Tools: Android Debug Bridge (adb), fastboot (flash a device with a new system image), systrace (collect and inspect timing information of processes running on your device at the system level which is crucial for debugging app performance)
+    - SDK Platform: For each version of Android, there's one SDK Platform available (eg. Android 11 (API level 30))
+    - Google APIs: Google provides Google APIs to make developing your app easier. They also offer a system image for the emulator so you can test your app using the Google APIs.
+    - Android Emulator: QEMU-based device-emulation tool that simulates Android devices
+    
+* **What is ADB tool used for?**
+
+  Android Debug Bridge (ADB) is a command line tool that lets you communicate with an Android device that is connected over USB, or with an emulator. It allows you to pull data from the device such as application log files, memory usage data, and push and pull applications.
+  
 * **What is Manifest file?** 
 
   It is an application level configuration file. All the metadata of the application like appName, launch icon, activities, services, and permissions are found here.
@@ -39,6 +54,22 @@
     1. standard: This is the default mode where the system creates a new instance of the activity in the target task or routes intent to it.
     2. singleTop: Activity will be created once and will be on top. If an instance of the activity already exists at the top of the target task, the system routes the intent to that instance through a call to its onNewIntent() method. 
     3. singleTask: Here, no multiple instances are created. The system creates the activity at the root of a new task and routes the intent to it. 
+    4. singleInstance: No multiple instances,Same as "singleTask", except that the system doesn't launch any other activities into the task holding the instance.
+    
+* **singleTask vs singleInstance**
+  
+  The "singleTask" and "singleInstance" modes also differ from each other in only one respect: A "singleTask" activity allows other activities to be part of its task. It's always at the root of its task, but other activities (necessarily "standard" and "singleTop" activities) can be launched into that task. A "singleInstance" activity, on the other hand, permits no other activities to be part of its task.
+  
+* **Scope functions**
+  
+  Scope functions sole purpose is to execute a block of code within the context of the object. There are five of them namely:
+   | Function       | Object reference     | Return Value   |
+   | :------------- | :------------------: | :------------- |
+   | let            | it                   | Lambda result  |
+   | run            | this                 | Lambda result  |
+   | apply          | this                 | the object     |
+   | with           | this                 | Lambda result  |
+   | also           | it                   | the object     |
  
 * **What is Activity?** 
 
@@ -49,13 +80,44 @@
   Contains various methods that we can use to track the state of the activity. If we wish to execute some logic then we can override these methods and we can have our own implementation. There are 7 lifecycle methods - onCreate(), onStart(), onResume(), onPause(), onStop(), onRestart(), onDestroy()
   
 * **What is a service?**
-  A service is one of the Android component that performs long running task in the background, <ini>even when the user is not interacting with the application</ini>. By default, service runs on the main thread and should create a new thread if performing intensive or blocking operations to avoid ANR errors. The service lifecycle—from when it's created to when it's destroyed—can follow either of these two paths: started service, bound service. 
+  A service is one of the Android component that performs long running task in the background, <ini>even when the user is not interacting with the application</ini>. By default, service runs on the main thread and should create a new thread if performing intensive or blocking operations to avoid ANR errors. The service lifecycle —from when it's created to when it's destroyed— can follow either of these two paths: started service, 
+  service. 
   Note: if you want to run a task outside of the main thread, but only while the application is running, use a thread. 
   
+* **When to use Services?**
+  
+  We cannot use main thread for long running tasks as the android system uses it to update the UI and if it's blocked for more than 5 sec, we will receive an ANR error. So, to avoid these we can use background thread which can be achieved by using a Thread or an executor. But using a thread or executor still not ideal since a screen rotation can disrupt things, since actvity will not be there when the task is done. You could use AsyncTask to handle this, but what if your app needs this Background Thread to be started from not just an Activity, but a notification or another component?
+* **Creating a service**
+  
+  If the service is started by the command `startService()`, the service continues to run until it stops itself with stopSelf() or another component stops it by calling stopService(). In this case, onStartCommand() is called. If the service is started by `bindService()`, onStartCommand() is not called and the service runs only as long as the component is bound to it.<br>
+  Below are the callback methods that need to be overridden:- 
+  - onStartCommand(): The service receives the intent here. 
+  - onBind()
+  - onCreate()
+  - onDestroy()
+  
+* **Creating an IntentService**
+  - define a class within your application that extends IntentService and defines the onHandleIntent
+  - Register the intent service in the app manifest file
+  -You can start the IntentService from any Activity or Fragment by calling startService(), the IntentService does the work defined in its onHandleIntent() method, and then stops itself.
+  - To communicate back to the application, there is two approches - ResultReceiver, BroadcastReceiver
+    - ResultReceiver - Generic callback interface used If your service only needs to connect with its parent application in a single place.
+    - BroadcastReceiver - Generic broadcast event which can then be picked up by any application. If your service needs to communicate with multiple components that want to listen for communication
+  
+* **JobIntentService vs IntentService**
+  JobIntentService is not recommended for new apps as it will not work well starting with Android 8 Oreo, due to the introduction of Background execution limits. 
+  - IntentService: Creates a new thread to perform a task and the given job is done on it's onHandleIntent(). The job given to the IntentService would get lost when the application is killed. 
+  - JobIntentService: The application can kill this job at any time and it can start the job from the beginning once the application gets recreated/up.
+  
 * **Types of Services**
-  - Foreground Services:  A foreground service performs operation that is noticeable to the user. It must provide a notification, which is placed under the "Ongoing" heading, which means that the notification cannot be dismissed unless the service is either stopped or removed from the foreground. (e.g. audio app using foreground service to play audio track).
+  - Foreground Services:  A foreground service performs operation that is noticeable to the user. It must provide a notification, which is placed under the "Ongoing" heading, which means that the notification cannot be dismissed unless the service is either stopped or removed from the foreground. (e.g. audio app using foreground service to play audio track). Use `startForegroundService()` class to start this service. 
   - Background Services: A background service performs an operation that isn't directly noticed by the user. (e.g. app using background service to compact its storage)
   - Bound Services:  better choice for more complex two-way interactions between activities and services. It allows the launching component to interact with, and receive results from the service. Started service does not generally return results or permit interaction with the component that launched it (requires complex programming).
+  
+* **Bound Service**
+  Bound service - Allows other components to bind it to the bound service to get some functionalities. One service can have multiple clients. Whenever the last component unbounds, that service is stopped. Local bound - client and service in same application, remote bound - AIDL - to connect to the client. When implementing AIDL we want to keep some steps.
+  1. Create an interface  - Implement the remote service
+  2. class extending service -
   
 * **Ways to create bound services**
 
@@ -63,24 +125,19 @@
     1. Extending the binder class - If your service is private to your own application and runs in the same process as the client 
     2. Using a Messenger - If you want to work across different processes, use Messenger. It creates a queue of all the client requests in a single thread, so the service receives requests one at a time.
     3. Using AIDL - If you want your service to handle multiple requests simultaneously, then use AIDL. Make sure your service is thread-safe and capable of multi-threading.
+    
+* **Steps for implementing AIDL**
 
 * **IntentServices**
 
   The IntentService is used to perform a certain task in the background. Once done, the instance of IntentService terminates itself automatically. An example for its usage would be downloading certain resources from the internet. It offers onHandleIntent() method which will be asynchronously called by the Android system.
-  
-* **Services**
-
-  Service is a app component that runs on the background. 
-  Bound service - Allows other components to bind it to the bound service to get some functionalities. One service can have multiple clients. Whenever the last component unbounds, that service is stopped. Local bound - client and service in same application, remote bound - AIDL - to connect to the client. When implementing AIDL we want to keep some steps.
-  1. Create an interface  - Implement the remote service
-  2. class extending service - 
   
 * **Internal and External storage**
   
   
 * **What is content provider?**
 
-  Content providers are used when there is a need to share data between multiple applications as Android-databases (Sqlite) created in Android are visible only to the application that created them. It let you centralize content in one place and have different applications access it. When you want to access data in a content provider, you use the ContentResolver object in your application's Context to communicate with the provider as a client. The ContentResolver methods provide the basic "CRUD" (create, retrieve, update, and delete) functions of persistent storage. In most cases this data is stored in an SQlite database. The CursorLoader objects rely on content providers to run asynchronous queries and then return the results to the UI layer in your application.
+  Content providers are used when there is a need to share data between multiple applications as Android-databases (Sqlite) created in Android are visible only to the application that created them.It let you centralize content in one place and different applications can access it. When you want to access data in a content provider, you use the ContentResolver object in your application's Context to communicate with the provider as a client. The ContentResolver methods provide the basic "CRUD" (create, retrieve, update, and delete) functions of persistent storage. In most cases this data is stored in an SQlite database. The CursorLoader objects rely on content providers to run asynchronous queries and then return the results to the UI layer in your application.
   Actvity/Fragment <---> CursorLoader <---> ContentResolver <---> ContentProvider <---> DataStorage
   
 * **Advantages of content providers**
@@ -89,7 +146,7 @@
   
 * **What is broadcast receiver?**[*](https://developer.android.com/guide/components/broadcasts)
   
-  BroadcastReceiver is a dormant component of android that listens to system-wide broadcast events or intents. Some examples of system wide generated intents are:- 
+  BroadcastReceiver is a dormant component of android that listens to system-wide broadcast events or intents. That is, it allows you to register for system or application events. Some examples of system wide generated intents are:- 
     - android.intent.action.BATTERY_LOW
     - android.intent.action.BOOT_COMPLETED 
     - android.intent.action.CALL
@@ -105,9 +162,17 @@
       
 * **What is an Intent?**
 
-  `Intent` is a messaging object that carries information which the Android system uses to determine which component to start plus the information that the recipient component uses in order to function properly. Through intent, one can start a new actvity, start a service, deliver a broadcast, open a web page, camera.
+  `Intent` is a messaging object that carries information that the Android system uses to determine which component to start plus the information that the recipient component uses in order to function properly. Through intent, one can start a new actvity, start a service, deliver a broadcast, open a web page, camera.
   1. Explicit intent - Know both the action and the target component
   2. Implicit inetnt - Know the action (opening 3rd party components) but don't know the target component
+  
+* **What is sticky intent?**
+  
+  - Sticky intent: Sticks with Android, for future broadcast listeners. It is a broadcast from sendStickyBroadcast() method such that the intent floats around even after the broadcast, allowing others to collect data from it. The Android system uses sticky broadcast for certain system information. For example if BATTERY_LOW event occurs then that Intent will stick with Android so that any future requests for BATTERY_LOW, will return the Intent.
+  
+* **What is PendingIntent?**
+
+  A pending intent is a token that you give to another application. That is, If you want some one to perform any Intent operation at future point of time on behalf of you, then we will use Pending Intent. For example, the notification manager, alarm manager or other 3rd party applications). This allows the other application to restore the permissions of your application to execute a predefined piece of code.
   
 * **Types of data that can pass in intent** 
   - Primitive types - we can pass primitive types via event but have to use serializable or parcelable to pass objects.
@@ -116,7 +181,10 @@
 
 * **What is Intent Filter?**
   
-  Intent filters specifies the type of the intent that the component would like to receive. When you create an implicit intent, the Android system finds the appropriate component to start by comparing the contents of the intent to the intent filters declared in the manifest file of other apps on the device.
+  Intent filters Specifies the types of intents that an activity, service, or broadcast receiver can respond to. It filter out intents that these components are willing to receive. When you create an implicit intent, the Android system finds the appropriate component to start by comparing the contents of the intent to the intent filters declared in the manifest file of other apps on the device.<br>
+  <action> -> generic action to perform (eg. ACTION_MAIN - main entry point)
+  <category> -> what kind of component that should handle the intent (eg. CATEGORY_DEFAULT, CATEGORY_BROWSABLE, CATEGORY_LAUNCHER)
+  <data> -> Declaes the data type accepted to be acted on. Can be just a URI, or both a data type(MIME type) and a URI.
   
 * **What is ViewGroup?**
 
@@ -137,10 +205,10 @@
   Android draws the layout hierarchy in three stages:
   - Measuring stage: `onMeasure()` - Each view must measure itself
   - Layout stage: each ViewGroup finds the right position for its children on the screen by using the child size and also by following the layout rules.
-  - Drawing stage: `onDraw()` - after measuring and positioning all of the views, each view happily draws itself.l This method provides a canvas for that. `invalidate()`: makes Android redraw the view by calling onDraw()
+  - Drawing stage: `onDraw()` - after measuring and positioning all of the views, each view happily draws itself. This method provides a canvas for that. `invalidate()`: makes Android redraw the view by calling onDraw()
  
 * **Fragment**
-  Fragment segments your app into multiple, independent screens that are hosted within an Activity.
+  Fragments can be used as part of your application's layout, allowing you to better modularize your code and more easily adjust your user interface to the screen it is running on. In short, fragment segments your app into multiple, independent screens that are hosted within an Activity.
   - modularity - divide UI to subsections 
   - reusability - same fragment can be used in other activities
   - adaptability -  easily adjust your UI to the screen it is running on.
@@ -177,7 +245,7 @@
 
 * **List view vs recycler view**
 
-  * <ini>ListView</ini> - displays all the items vertically in a scrollable fashion and creates view for each items.
+  * <ini>ListView</ini> - displays all the items vertically in a scrollable fashion and creates view for each items. List View being rebuilt/redrawn too many times as the user scrolls result in performance overhead on the CPU.
   * <ini>RecyclerView</ini> - It's an advanced form of list view.
     1. Reuses cells while scrolling up/down - this is possible with implementing View Holder in the ListView adapter, but it was an optional thing, while in the RecycleView it's the default way of writing adapter. Therefore, memory efficient because it keeps on recycling the view as the view is gotten from the view holder. ViewHolder holds the view and when the recycler view recycles it gets the view from the ViewHolder.
     2. Decouples list from its container - so you can put list items easily at run time in the different containers (linearLayout, gridLayout, staggeredLayout) with setting LayoutManager.
@@ -317,12 +385,18 @@ Create a class @Module that contains your method with @Provides in it.
   - RxJava works on android and Java. Coroutines are based on Kotlin. 
   - RXjava based on Observer pattern and well designed library and more complex. Greater learning curve. 
   
+* **Coroutines dispatchers**
+Dispatchers help coroutines in deciding the thread on which the work has to be done. 
+  
 * **Difference b/w launch/join and async/await in Kotlin Coroutines**
-  - `launch` is used to fire and forget coroutine. It's like starting a new thread. If the code inside the `launch` terminates with exception, then it is treated like uncaught exception in a thread.`join` is used to wait for completion of the launched coroutine and it does not propagate its exception. However, a crashed child coroutine cancels its parent with the corresponding exception, too.
+  - `launch` is used to fire and forget coroutine. It's like starting a new thread. If the code inside the `launch` terminates with exception, then it is treated like uncaught exception in a thread.`join` is used to wait for completion of the launched coroutine and it does not propagate its exception. However, a crashed child coroutine cancels its parent with the corresponding exception, too. async retruns the result.
 
 * **Handler, Thread, Looper, and MessageQueue**
 
-  The main thread is nothing but just a handler thread. Main thread is responsible for handling events from all over the app like callbacks associated with the lifecycle
+  - Main thread is responsible for handling events from all over the app like callbacks associated with the lifecycle
+  - Handlers: For comomunicating between the threads
+  - Looper: 
+  - Message Queue: 
 
 JVM will first compile the code 
 to .class file using the compiler
@@ -491,4 +565,62 @@ moved to dvm to art
 attching viewmodel to actvity or fragment?
 Fragment - 
 
+* **Continuous Integration/ Continuous Deployment (CI/CD)**
+  - Pipeline: CI and CD are often represented as a pipeline, where new code enters on one end, flows through a series of stages (build, test, staging, production), and published as a new production release to end users on the other end.
+  - CI: It is a process where developers integrate their code into the master/main branch. Each merge triggers an automated code build and test sequence, which ideally runs in less than 10 minutes. A successful CI build may lead to further stages of continuous delivery.
+  - CD: every change in the source code is deployed to production automatically
+  
+  
+* **Data Store**
+  
+  - Encrypting data
+  
+* **Paging**
+  - Don't require the consumer to download all the data at once. 
+  
+  ** Navigation**
+  
+  A navigation graph is a resource file that represents all of your app's navigation paths.
+    - 
+  
+  * Multithreading - ANR we need to separate the tasks if they are long running. 
+  different
+  
+  handlers - communicate between the threads. 
+  
+  onPost()
+  OnPostDelay()
+  
+  Coroutines doesn't create any memory. We have dispatchers to switch between the thread. 
+  
+  With threads we need to 
+  
+  * **Scope Functions**
+    
+    The Kotlin standard library contains several functions whose sole purpose is to execute a block of code within the context of an object. 
+When you call such a function on an object with a lambda expression provided, it forms a temporary scope. In this scope, you can access the object without its name. Such functions are called scope functions. There are five of them: let, run, with, apply, and also. apply and also return the context object.let, run, and with return the lambda result.
 
+* **Lazy vs lateinit**
+  - `lazy { ... }` delegate can only be used for `val` properties, whereas `lateinit` can only be applied to `var`s, because it can't be compiled to a `field`, thus no immutability can be guaranteed
+  - lateinit var has a backing field which stores the value, and by lazy { ... } creates a delegate object in which the value is stored once calculated, stores the reference to the delegate instance in the class object and generates the getter for the property that works with the delegate instance. So if you need the backing field present in the class, use lateinit;
+  
+* **Inline function**
+
+* **Product Flavor**
+
+  Feature of Gradle plugin in Android Studio. (eg paid and free app). Both share common source code and resources. At the same time they both can have different features, device requirements and resources. 
+  
+  Advantages of Product Flavor
+  - Single android studio project
+  - Single repo in version control
+  - common features and bug fixes in one go
+  
+  flavorDimensions "default"
+  productFlavors {
+    basic {
+    }
+    premium {
+    }
+  }
+
+  
