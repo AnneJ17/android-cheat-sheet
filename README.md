@@ -59,10 +59,12 @@
 * **singleTask vs singleInstance**
   
   The "singleTask" and "singleInstance" modes also differ from each other in only one respect: A "singleTask" activity allows other activities to be part of its task. It's always at the root of its task, but other activities (necessarily "standard" and "singleTop" activities) can be launched into that task. A "singleInstance" activity, on the other hand, permits no other activities to be part of its task.
-  
+
 * **Scope functions**
   
-  Scope functions sole purpose is to execute a block of code within the context of the object. There are five of them namely:
+  The Kotlin standard library contains several functions whose sole purpose is to execute a block of code within the context of an object. 
+When you call such a function on an object with a lambda expression provided, it forms a temporary scope. In this scope, you can access the object without its name. Such functions are called scope functions. There are five of them: let, run, with, apply, and also. apply and also return the context object.let, run, and with return the lambda result.
+
    | Function       | Object reference     | Return Value   |
    | :------------- | :------------------: | :------------- |
    | let            | it                   | Lambda result  |
@@ -87,6 +89,7 @@
 * **When to use Services?**
   
   We cannot use main thread for long running tasks as the android system uses it to update the UI and if it's blocked for more than 5 sec, we will receive an ANR error. So, to avoid these we can use background thread which can be achieved by using a Thread or an executor. But using a thread or executor still not ideal since a screen rotation can disrupt things, since actvity will not be there when the task is done. You could use AsyncTask to handle this, but what if your app needs this Background Thread to be started from not just an Activity, but a notification or another component?
+
 * **Creating a service**
   
   If the service is started by the command `startService()`, the service continues to run until it stops itself with stopSelf() or another component stops it by calling stopService(). In this case, onStartCommand() is called. If the service is started by `bindService()`, onStartCommand() is not called and the service runs only as long as the component is bound to it.<br>
@@ -109,15 +112,19 @@
   - IntentService: Creates a new thread to perform a task and the given job is done on it's onHandleIntent(). The job given to the IntentService would get lost when the application is killed. 
   - JobIntentService: The application can kill this job at any time and it can start the job from the beginning once the application gets recreated/up.
   
+* **Service Category**
+  - StartService
+  - BoundService
+  
 * **Types of Services**
   - Foreground Services:  A foreground service performs operation that is noticeable to the user. It must provide a notification, which is placed under the "Ongoing" heading, which means that the notification cannot be dismissed unless the service is either stopped or removed from the foreground. (e.g. audio app using foreground service to play audio track). Use `startForegroundService()` class to start this service. 
   - Background Services: A background service performs an operation that isn't directly noticed by the user. (e.g. app using background service to compact its storage)
   - Bound Services:  better choice for more complex two-way interactions between activities and services. It allows the launching component to interact with, and receive results from the service. Started service does not generally return results or permit interaction with the component that launched it (requires complex programming).
   
 * **Bound Service**
-  Bound service - Allows other components to bind it to the bound service to get some functionalities. One service can have multiple clients. Whenever the last component unbounds, that service is stopped. Local bound - client and service in same application, remote bound - AIDL - to connect to the client. When implementing AIDL we want to keep some steps.
-  1. Create an interface  - Implement the remote service
-  2. class extending service -
+  Bound service - Allows other components to bind it to the bound service to get some functionalities. One service can have multiple clients. Only when the last component unbounds, the service is stopped. So, it's important to stop the service by overriding the onTaskRemoved() and then calling the stopSelf().<br>
+  Local bound - client and service in same application. There is 2 way you can bound a service. One is after starting a service and then binding it or by just binding it directly. If you do allow your service to be started and bound, then when the service has been started, the system does not destroy the service when all clients unbind. Instead, you must explicitly stop the service by calling stopSelf() or stopService().<br>
+  remote bound - AIDL - to connect to the client.
   
 * **Ways to create bound services**
 
@@ -127,6 +134,10 @@
     3. Using AIDL - If you want your service to handle multiple requests simultaneously, then use AIDL. Make sure your service is thread-safe and capable of multi-threading.
     
 * **Steps for implementing AIDL**
+
+  When implementing AIDL we want to keep some steps.
+  1. Create an interface  - Implement the remote service
+  2. class extending service -
 
 * **IntentServices**
 
@@ -181,7 +192,7 @@
 
 * **What is Intent Filter?**
   
-  Intent filters Specifies the types of intents that an activity, service, or broadcast receiver can respond to. It filter out intents that these components are willing to receive. When you create an implicit intent, the Android system finds the appropriate component to start by comparing the contents of the intent to the intent filters declared in the manifest file of other apps on the device.<br>
+  Intent filters specifies the types of intents that an activity, service, or broadcast receiver can respond to. It filter out intents that these components are willing to receive. When you create an implicit intent, the Android system finds the appropriate component to start by comparing the contents of the intent to the intent filters declared in the manifest file of other apps on the device.<br>
   <action> -> generic action to perform (eg. ACTION_MAIN - main entry point)
   <category> -> what kind of component that should handle the intent (eg. CATEGORY_DEFAULT, CATEGORY_BROWSABLE, CATEGORY_LAUNCHER)
   <data> -> Declaes the data type accepted to be acted on. Can be just a URI, or both a data type(MIME type) and a URI.
@@ -374,9 +385,16 @@ Create a class @Module that contains your method with @Provides in it.
 * **Coroutines**
 
   Coroutines = Co + Routines. Here, **Co** means cooperation and **Routines** means functions. It means that when functions cooperate with each other, we call it as Coroutines. It's an optimized framework written over the actual threading by taking advantage of the cooperative nature of functions to make it light and yet powerful. So, we can say Coroutines are lightweight threads. A lightweight thread means it doesn't map on native thread (stackless), so it doesn't require context switching on the processor, so they are faster. Coroutines do not replace threads, it’s more like a framework to manage it.
-  Coroutines are able to perform long-running and intensive tasks by suspending execution without blocking the thread and then resuming the execution at some later time. It allows the creation of non-blocking asynchronous code that appears to be synchronous.
+  Coroutines are able to perform long-running and intensive tasks by suspending execution without blocking the thread and then resuming the execution at some time later. It allows the creation of non-blocking asynchronous code that appears to be synchronous. 
+ Creating coroutines doesn’t allocate new threads (no memory allocated). Instead, they use predefined thread pools and smart scheduling for the purpose of which task to execute next and which tasks later.
+ 
+* **Why we need coroutines?**
   
-* **Why use Coroutines?**
+  We have many async tools like RxJava, AsyncTasks, Jobs, Threads, but why there is a need to learn something new?<br>
+  While Using Rx, it requires a lot of effort to get it enough, to use it safely. On the Other hand, AsyncTasks and threads can easily introduce leaks and memory overhead. Even using these tools after so many disadvantages, the code can suffer from callbacks, which can introduce tons of extra code. Not only that, but the code also becomes unreadable as it has many callbacks which ultimately slow down or hang the device leading to poor user experience.
+  With coroutines we can launch thousandes of coroutine jobs and we can also suspend the function. We also can define scopes with the coroutine job.
+  
+* **Coroutine Features**
 
   - Lightweight: You can run many coroutines on a single thread due to support for suspension, which doesn't block the thread where the coroutine is running. Suspending saves memory over blocking while supporting many concurrent operations.
   - Fewer memory leaks: Use structured concurrency to run operations within a scope.
@@ -385,18 +403,33 @@ Create a class @Module that contains your method with @Provides in it.
   - RxJava works on android and Java. Coroutines are based on Kotlin. 
   - RXjava based on Observer pattern and well designed library and more complex. Greater learning curve. 
   
-* **Coroutines dispatchers**
-Dispatchers help coroutines in deciding the thread on which the work has to be done. 
+* **Coroutines vs Thread**
+  - Fetching the data from one thread and passing it to another thread takes a lot of time. It also introduces lots of callbacks, leading to less readability of code. On the other hand, coroutines eliminate callbacks.
+  - Creating and stopping a thread is an expensive job, as it involves creating their own stacks.,whereas creating coroutines is very cheap when compared to the performance it offers. coroutines do not have their own stack.
+  - Threads are blocking, whereas coroutines are suspendable. 
+  - Coroutines offer a very high level of concurrency. When a coroutine reaches a suspension point, the thread is returned back to its pool, so it can be used by another coroutine or by another process. When the suspension is over, the coroutine resumes on a free thread in the pool. At the moment when a coroutine suspends, the Kotlin runtime finds another coroutine to resume its execution.
+  - Coroutines, unlike threads, also don’t need a lot of memory, just some bytes.Because of this, you can start many more coroutines than threadsBecause of this, you can start many more coroutines than threads. Each thread on a JVM consumes about 1MB of memory.
+  
+* **Dispatchers**
+
+  Dispatchers help coroutines in deciding the thread on which the work has to be done. Dispatchers are passed as the arguments to the GlobalScope by mentioning which type of dispatchers we can use depending on the work that we want the coroutine to do. If not mentioned in the GlobalScope, then it cannot be predicted, sometimes it is DefaultDispatcher-worker-1, or DefaultDispatcher-worker-2 or DefaultDispatcher-worker-3.
+  - Dispatchers.Main: Starts the coroutine in the main thread. for example when you update the UI.
+  - Dispatchers.IO: Starts the coroutine in the IO thread. Used for input/output work (e.g. network call, reading from or wrtiing to database, writing to file).
+  - Dispatchers.Default: Starts the coroutine in the Default Thread. Used to do Complex and long-running calculations and uses the same dispatcher as GlobalScope.launch { … }
+  - Dispatchers.Unconfined:  not confined to any specific thread. It executes the initial continuation of a coroutine in the current call-frame and lets the coroutine resume in whatever thread that is used by the corresponding suspending function
   
 * **Difference b/w launch/join and async/await in Kotlin Coroutines**
-  - `launch` is used to fire and forget coroutine. It's like starting a new thread. If the code inside the `launch` terminates with exception, then it is treated like uncaught exception in a thread.`join` is used to wait for completion of the launched coroutine and it does not propagate its exception. However, a crashed child coroutine cancels its parent with the corresponding exception, too. async retruns the result.
+  - `launch` do not return any object and is used to fire and forget coroutine. It's like starting a new thread. If the code inside the `launch` terminates with exception, then it is treated like uncaught exception in a thread.`join` is used to wait for completion of the launched coroutine and it does not propagate its exception. However, a crashed child coroutine cancels its parent with the corresponding exception, too. async retruns the result.
 
 * **Handler, Thread, Looper, and MessageQueue**
 
   - Main thread is responsible for handling events from all over the app like callbacks associated with the lifecycle
-  - Handlers: For comomunicating between the threads
-  - Looper: 
-  - Message Queue: 
+  - Handlers: For comomunicating between the threads. It enqueues task in the MessageQueue using Looper and also executes them when the task comes out of the MessageQueue.
+  - Looper: It is a worker that keeps a thread alive, loops through MessageQueue and sends messages to the corresponding handler to process.
+  - Message Queue: It is a queue that has tasks called messages which should be processed
+  Using these handler and Main thread looper works fine, but not good solution as it allocates lot of memory. 
+    - #1. we need to create a new thread every time we send data to the background
+    - #2. Every time we need to post data back to the main thread using the handler
 
 JVM will first compile the code 
 to .class file using the compiler
@@ -467,7 +500,7 @@ There is a problem. There are few instance where garbage collector will try to c
   - Map: Used to alter the emitted data. It modifies each item emitted by a source Observable and emits the modified item.
   - FlatMap:  Used when the order is not important and want to send all the network calls simultaneously
   - ConcatMap: Unlike FlatMap, maintains the order of items and waits for the current Observable to complete its job before emitting the next one. more suitable when you want to maintain the order of execution.
-  - SwitchMap: Used when you want to discard the response and consider the latest one. It oneunsubscribe from previous source Observable whenever new item started emitting, thus always emitting the items from current Observable (e.g. Instant search).
+  - SwitchMap: Used when you want to discard the response and consider the latest one. It unsubscribe from previous source Observable whenever new item started emitting, thus always emitting the items from current Observable (e.g. Instant search).
 
 * **Firebase**
   
@@ -498,7 +531,7 @@ moved to dvm to art
  
    Used in Junit testing. 
    
-* **Mock vs. Stub vs. Spy**
+* **Mock vs Stub vs Spy**
 
   - Mock: A mock is a dummy class replacing a real one, returning something like null or 0 for each method call.
   - Stub: A stub is a dummy class providing some more specific, prepared or pre-recorded, replayed results to certain requests under test. 
@@ -578,33 +611,23 @@ Fragment -
 * **Paging**
   - Don't require the consumer to download all the data at once. 
   
-  ** Navigation**
+* ** Navigation**
   
   A navigation graph is a resource file that represents all of your app's navigation paths.
     - 
   
   * Multithreading - ANR we need to separate the tasks if they are long running. 
-  different
-  
-  handlers - communicate between the threads. 
   
   onPost()
   OnPostDelay()
-  
-  Coroutines doesn't create any memory. We have dispatchers to switch between the thread. 
-  
-  With threads we need to 
-  
-  * **Scope Functions**
-    
-    The Kotlin standard library contains several functions whose sole purpose is to execute a block of code within the context of an object. 
-When you call such a function on an object with a lambda expression provided, it forms a temporary scope. In this scope, you can access the object without its name. Such functions are called scope functions. There are five of them: let, run, with, apply, and also. apply and also return the context object.let, run, and with return the lambda result.
 
 * **Lazy vs lateinit**
   - `lazy { ... }` delegate can only be used for `val` properties, whereas `lateinit` can only be applied to `var`s, because it can't be compiled to a `field`, thus no immutability can be guaranteed
   - lateinit var has a backing field which stores the value, and by lazy { ... } creates a delegate object in which the value is stored once calculated, stores the reference to the delegate instance in the class object and generates the getter for the property that works with the delegate instance. So if you need the backing field present in the class, use lateinit;
   
 * **Inline function**
+
+  So, calling non-inline function and passing a lambda to it will always create an instance of an object. But when we use the keyword 'inline', no new instance is created, instead, the code around the invocation of block inside the inlined function will be copied to the call site. Inlining works best for functions with parameters of functional types or lambdas(Higher-order functions). You wouldn't want to inline by default: Inlining may cause the generated code to grow; however, if we do it in a reasonable way (i.e. avoiding inlining large functions), it will pay off in performance
 
 * **Product Flavor**
 
