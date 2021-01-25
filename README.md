@@ -126,6 +126,10 @@ When you call such a function on an object with a lambda expression provided, it
   Local bound - client and service in same application. There is 2 way you can bound a service. One is after starting a service and then binding it or by just binding it directly. If you do allow your service to be started and bound, then when the service has been started, the system does not destroy the service when all clients unbind. Instead, you must explicitly stop the service by calling stopSelf() or stopService().<br>
   remote bound - AIDL - to connect to the client.
   
+* **Why use Bound Service?**
+  
+  It allows components (such as activities) to bind to the service, send requests, receive responses, and perform interprocess communication (IPC). A bound service typically lives only while it serves another application component and does not run in the background indefinitely.
+  
 * **Ways to create bound services**
 
   There are 3 ways you can define the interface
@@ -144,6 +148,19 @@ When you call such a function on an object with a lambda expression provided, it
   The IntentService is used to perform a certain task in the background. Once done, the instance of IntentService terminates itself automatically. An example for its usage would be downloading certain resources from the internet. It offers onHandleIntent() method which will be asynchronously called by the Android system.
   
 * **Internal and External storage**
+  
+* **Components of RoomDB**
+
+  •	The database class that holds the database and serves as the main access point for the underlying connection to your app's persisted data.
+	•	Data entities that represent tables in your app's database.
+	•	Data access objects (DAOs) that provide methods that your app can use to query, update, insert, and delete data in the database.
+
+
+* **RoomDB vs Sqlite**
+  1. In the room there is sql verification done at compile time
+  2. When schema changes you need to upgrade the affected sql queries Room solve this problem very easily
+  3. We have to write lot of boiler plate code to convert sql queries and java object but room maps our database object to java object without any boiler plate code
+  4. Room is built to work with live data and Rxjava for data observation while sqlite does not
   
   
 * **What is content provider?**
@@ -380,7 +397,54 @@ Create a class @Module that contains your method with @Provides in it.
   - @Provide - Methods inside @Module which tell Dagger how we want to build and present a dependency
   - @Component  - Bridge between @Module and @Inject
   - @Scope - Enables to create global and local singletons
-  - @Qualifier - If different object of the same type are necessary
+  - @Qualifier - If different object of the same type are necessary (@Named is pre-defined method but @Qualifier can be used it to make a cleaner code)
+  
+* **DaggerHilt** [*](https://proandroiddev.com/exploring-dagger-hilt-and-whats-main-differences-with-dagger-android-c8c54cd92f18)
+
+  Dagger can create a graph of the dependencies in your project that it can use to find out where it should get those dependencies when they are needed. To make Dagger do this, you need to create an interface and annotate it with @Component. Dagger creates a container as you would have done with manual dependency injection.<br>
+  In Dagger-Android, we have to create a component class with a builder/factory, includes every module and we should inject the application context in the Application class after building our project. Here is the Dagger-Android way to construct a component.<br>
+` 
+@Singleton
+@Component(modules = [AndroidInjectionModule::class,ActivityModule::class,ViewModelModule::class,NetworkModule::class])
+interface AppComponent : AndroidInjector<DaggerApplication> {
+
+  @Component.Factory
+  interface Factory {
+    fun create(@BindsInstance application: Application): AppComponent
+  }
+}`<br>
+`class TheMoviesApplication : DaggerApplication() {
+
+  override fun applicationInjector() = DaggerAppComponent.factory().create(this)
+  
+}`<br>
+But in Hilt, we don’t need to create a component, include every module, and build for generating DaggerAppComponent class.
+`@HiltAndroidApp
+class PokedexApp : Application()`
+Also, the instance of an App can be injected into other modules by the Hilt<br>
+`/** Provides a binding for an Android BinderFragment Context. */
+@Module
+@InstallIn(ApplicationComponent.class)
+public final class ApplicationContextModule {
+  private final Context applicationContext;
+
+  public ApplicationContextModule(Context applicationContext) {
+    this.applicationContext = applicationContext;
+  }
+
+  @Provides
+  @ApplicationContext
+  Context provideContext() {
+    return applicationContext;
+  }
+
+  @Provides
+  Application provideApplication() {
+    return (Application) applicationContext.getApplicationContext();
+  }
+
+}`<br>
+Hilt provides the ApplicationContextModule by default and it is followed by the whole application’s lifecycle. By annotating the @HiltAndroidApp annotation, an instance of the App will be injected into that module internally. So we don’t need to inject the instance of the application in the App class.
   
 * **Coroutines**
 
@@ -409,6 +473,12 @@ Create a class @Module that contains your method with @Provides in it.
   - Threads are blocking, whereas coroutines are suspendable. 
   - Coroutines offer a very high level of concurrency. When a coroutine reaches a suspension point, the thread is returned back to its pool, so it can be used by another coroutine or by another process. When the suspension is over, the coroutine resumes on a free thread in the pool. At the moment when a coroutine suspends, the Kotlin runtime finds another coroutine to resume its execution.
   - Coroutines, unlike threads, also don’t need a lot of memory, just some bytes.Because of this, you can start many more coroutines than threadsBecause of this, you can start many more coroutines than threads. Each thread on a JVM consumes about 1MB of memory.
+  
+* **Coroutine Scopes**
+  - @CoroutineScope
+  - @GlobalScope
+  - @LifecycleScope
+  - ViewModelScope
   
 * **Dispatchers**
 
@@ -463,7 +533,7 @@ There is a problem. There are few instance where garbage collector will try to c
   
 * **How RxJava works**
     * Subscriber subscribes to Observable, then Observable calls Subscriber.onNext() for any number of items, if something goes wrong Subsciber.onError() is called and when the task is finished Subscriber.onCompleted() is called. 
-    * Operators are methods created for solving transformations and handling API calls problems. Some of the common operators - Observable, Flowable, Single.
+    * Operators are methods created for solving transformations and handling API calls problems. Some of the **common operators** - Observable, Flowable, Single.
   <ini>Observable</ini> : Let us consider that We are making an API call and receiving the response. And that response is wrapped inside Observable type so that it can be processed by RxJava operators.
   <ini>Flowable<ini> : Each operator solves different problem, Flowable solving Backpressure ( Backpressure happens when there are multiple responses come at a speed that observers cannot keep up ). In Flowable, BackPressure is handled using BackPressure Strategies — MISSING, ERROR, BUFFER, DROP, LATEST. BackPressure is Handled by anyone of the mentioned strategies. Flowable is useful when we are making pagination call.
   <ini>Single</ini> : Single always either emits one value or an error. It returns Latest response for all requests. It is ideal for making search call.
@@ -616,7 +686,7 @@ Fragment -
   A navigation graph is a resource file that represents all of your app's navigation paths.
     - 
   
-  * Multithreading - ANR we need to separate the tasks if they are long running. 
+
   
   onPost()
   OnPostDelay()
@@ -645,5 +715,9 @@ Fragment -
     premium {
     }
   }
-
+  
+* **PowerMock**
+  - static, final and private methods
+  - remove static initializers
+  - allow mocking without dependency injection
   
