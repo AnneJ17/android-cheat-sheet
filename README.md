@@ -665,8 +665,8 @@ moved to dvm to art
   - Reduce network calls: We can reduce the network calls by caching the network response.
   - Fetch the data very fast
 
-attching viewmodel to actvity or fragment?
-Fragment - 
+	attching viewmodel to actvity or fragment?
+	Fragment - 
 
 * **Continuous Integration/ Continuous Deployment (CI/CD)**
   - Pipeline: CI and CD are often represented as a pipeline, where new code enters on one end, flows through a series of stages (build, test, staging, production), and published as a new production release to end users on the other end.
@@ -721,3 +721,16 @@ Fragment -
   - remove static initializers
   - allow mocking without dependency injection
   
+* **RxJava Notes**
+  - Observer pattern handles event-basd code but it doesn't have the notion of `onComplete` or `onError`. Developers have to remember to cancel the event listener, which otherwise leads to memory leak. Obsesrvable pattern can handle both async and event-based code. In addition to disposing on lifecycle termination event, there are many operators that can cancel an event-based observable. 
+  - What is an Observable?
+  	- Simply a collection that arrives over time
+	- Can be finitie or infinite
+	- OnNext: push (emit) the next value
+	- OnCompleted: No more values to push
+	- OnError: error occured when trying to push
+   - Cancelling an infinite Observable
+  	- TakeUntil: discard any items emitted by an Observable after a second Observable emits an item or terminates
+	- Take: emit only the first n items emitted by an Observable
+	- TakeWhile: discard items emitted by an Observable after a specified condition becomes false
+	- Amb: given two or more source Observables, emit all of the items from only the first of these Observables to emit an item
