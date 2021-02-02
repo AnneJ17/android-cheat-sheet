@@ -558,12 +558,20 @@ There is a problem. There are few instance where garbage collector will try to c
   
 * **Converting RxJava to LiveData**
 * **Advantages and Disadvantages of RxJava**
+
 * **Types of observables**
+   - Observable: emit a stream elements (endlessly)
+   - Flowable: emit a stream of elements (endlessly, with backpressure)
+   - Single: emits exactly one element and then completes. Useful when we want to ensure we haven’t got empty outputs.
+   - Maybe: emits zero or one elements. Unlike Single, it can complete without emitting a value. Useful when we have optional emissions (eg. getting a logged user but not signed in yet).
+   - Completable: emits a “complete” event, without emitting any data type, just a success/failure. Useful when carrying out actions that don’t require a specific output (eg. when we make a login or send data).
+   
 * **Types of operators**
 
   - Filter: 
   - Buffer: Buffer gathers items emitted by an Observable into batches and emit the batch instead of emitting one item at a time.
   - Debounce: Debounce operators emits items only when a specified timespan is passed. It's usually used when the Observable is rapidly emitting items but you are only interested in receiving them in timely manner (e.g. Instant search).
+  - Zip: combine the values of multiple Observable together through a specific function (eg. attaching a picture to an API result, such as avatar to name).
   
 * **RxJava map opeartors** [*](https://www.androidhive.info/RxJava/map-flatmap-switchmap-concatmap/)
   FlatMap, ConcatMap, SwitchMap - instead of returning the modified item, it returns the Observable itself which can emit data again
@@ -571,6 +579,13 @@ There is a problem. There are few instance where garbage collector will try to c
   - FlatMap:  Used when the order is not important and want to send all the network calls simultaneously
   - ConcatMap: Unlike FlatMap, maintains the order of items and waits for the current Observable to complete its job before emitting the next one. more suitable when you want to maintain the order of execution.
   - SwitchMap: Used when you want to discard the response and consider the latest one. It unsubscribe from previous source Observable whenever new item started emitting, thus always emitting the items from current Observable (e.g. Instant search).
+  
+* **What is backpressure?**
+
+	Basically a backpressure strategy indicates what to do with emitted items if they can’t be processed as fast as they are received. We can imagine, for instance, a flowable that sends gyroscope data with a really fast frequency and we need to apply a strong computation algorithm over each emitted item.<br>
+
+If the type spend for the algorithm is considerably higher than the time between each item’s emission, then backpressure strategy is applied. (If we use an Observable instead of a Flowable, then we will have a backpressure exception. The available options are drop, buffer, latest.
+
 
 * **Firebase**
   
@@ -681,9 +696,9 @@ moved to dvm to art
 * **Paging**
   - Don't require the consumer to download all the data at once. 
   
-* ** Navigation**
+* **Navigation**
   
-  A navigation graph is a resource file that represents all of your app's navigation paths.
+  The navigation component helps you to manage navigations, fragment transactions, backstack, animations, most importantly deeplinking(don't have to use intent-filters). A navigation graph is a resource file that represents all of your app's navigation paths.
     - 
   
 
