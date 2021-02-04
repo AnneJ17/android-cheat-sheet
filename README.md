@@ -19,7 +19,12 @@
   
 * **ART vs Dalvik**
 
-  Dalvik behaves even worse in terms of memory management and Garbage Collection. 
+  A developer writes code for an android app and must compile the code to run on an android device. The Java files are compiled by a Java compiler into Java bytecode files. The bytecode is compiled by the R8 compiler into Dex bytecode files. When the app is installed on an android device, an AOT compiler compiles the Dex bytecode into .oat files. When the app is executed, the ART virtual machine runs the optimized code.	ART is responsible for allocating memory to the application as well as deallocate the memory. Whenever the activity get destroyed, ART tell the garbage collector to deallocate the memory.<br>
+  Dalvik behaves even worse in terms of memory management and Garbage Collection.
+ 
+* **APK file**
+  
+  An android project is composed of Java code, app resources, and the manifest file. Gradle starts the build by compiling an app's Java files into Dex bytecode. Gradle zips the Dex bytecode, the app resources, and manifest into a single APK file. The APK file can be installed on an android emulator or an android device, or the APK can be published in Google Play Store where others can download the app.
   
 * **Android SDK**
   
@@ -82,11 +87,12 @@ When you call such a function on an object with a lambda expression provided, it
   Contains various methods that we can use to track the state of the activity. If we wish to execute some logic then we can override these methods and we can have our own implementation. There are 7 lifecycle methods - onCreate(), onStart(), onResume(), onPause(), onStop(), onRestart(), onDestroy()
   
 * **What is a service?**
+
   A service is one of the Android component that performs long running task in the background, <ini>even when the user is not interacting with the application</ini>. By default, service runs on the main thread and should create a new thread if performing intensive or blocking operations to avoid ANR errors. The service lifecycle —from when it's created to when it's destroyed— can follow either of these two paths: started service, 
-  service. 
+  service. <br>
   Note: if you want to run a task outside of the main thread, but only while the application is running, use a thread. 
   
-* **When to use Services?**
+* **When to use services?**
   
   We cannot use main thread for long running tasks as the android system uses it to update the UI and if it's blocked for more than 5 sec, we will receive an ANR error. So, to avoid these we can use background thread which can be achieved by using a Thread or an executor. But using a thread or executor still not ideal since a screen rotation can disrupt things, since actvity will not be there when the task is done. You could use AsyncTask to handle this, but what if your app needs this Background Thread to be started from not just an Activity, but a notification or another component?
 
@@ -108,6 +114,7 @@ When you call such a function on an object with a lambda expression provided, it
     - BroadcastReceiver - Generic broadcast event which can then be picked up by any application. If your service needs to communicate with multiple components that want to listen for communication
   
 * **JobIntentService vs IntentService**
+
   JobIntentService is not recommended for new apps as it will not work well starting with Android 8 Oreo, due to the introduction of Background execution limits. 
   - IntentService: Creates a new thread to perform a task and the given job is done on it's onHandleIntent(). The job given to the IntentService would get lost when the application is killed. 
   - JobIntentService: The application can kill this job at any time and it can start the job from the beginning once the application gets recreated/up.
@@ -122,6 +129,7 @@ When you call such a function on an object with a lambda expression provided, it
   - Bound Services:  better choice for more complex two-way interactions between activities and services. It allows the launching component to interact with, and receive results from the service. Started service does not generally return results or permit interaction with the component that launched it (requires complex programming).
   
 * **Bound Service**
+
   Bound service - Allows other components to bind it to the bound service to get some functionalities. One service can have multiple clients. Only when the last component unbounds, the service is stopped. So, it's important to stop the service by overriding the onTaskRemoved() and then calling the stopSelf().<br>
   Local bound - client and service in same application. There is 2 way you can bound a service. One is after starting a service and then binding it or by just binding it directly. If you do allow your service to be started and bound, then when the service has been started, the system does not destroy the service when all clients unbind. Instead, you must explicitly stop the service by calling stopSelf() or stopService().<br>
   remote bound - AIDL - to connect to the client.
@@ -147,13 +155,11 @@ When you call such a function on an object with a lambda expression provided, it
 
   The IntentService is used to perform a certain task in the background. Once done, the instance of IntentService terminates itself automatically. An example for its usage would be downloading certain resources from the internet. It offers onHandleIntent() method which will be asynchronously called by the Android system.
   
-* **Internal and External storage**
-  
 * **Components of RoomDB**
 
-  •	The database class that holds the database and serves as the main access point for the underlying connection to your app's persisted data.
-	•	Data entities that represent tables in your app's database.
-	•	Data access objects (DAOs) that provide methods that your app can use to query, update, insert, and delete data in the database.
+  - The database class that holds the database and serves as the main access point for the underlying connection to your app's persisted data.
+  - Data entities that represent tables in your app's database.
+  - Data access objects (DAOs) that provide methods that your app can use to query, update, insert, and delete data in the database.
 
 
 * **RoomDB vs Sqlite**
@@ -165,7 +171,7 @@ When you call such a function on an object with a lambda expression provided, it
   
 * **What is content provider?**
 
-  Content providers are used when there is a need to share data between multiple applications as Android-databases (Sqlite) created in Android are visible only to the application that created them.It let you centralize content in one place and different applications can access it. When you want to access data in a content provider, you use the ContentResolver object in your application's Context to communicate with the provider as a client. The ContentResolver methods provide the basic "CRUD" (create, retrieve, update, and delete) functions of persistent storage. In most cases this data is stored in an SQlite database. The CursorLoader objects rely on content providers to run asynchronous queries and then return the results to the UI layer in your application.
+  Content providers are used when there is a need to share data between multiple applications as Android-databases (Sqlite) created in Android are visible only to the application that created them.It let you centralize content in one place and different applications can access it. When you want to access data in a content provider, you use the ContentResolver object in your application's Context to communicate with the provider as a client. The ContentResolver methods provide the basic "CRUD" (create, retrieve, update, and delete) functions of persistent storage. In most cases this data is stored in an SQlite database. The CursorLoader objects rely on content providers to run asynchronous queries and then return the results to the UI layer in your application.<br>
   Actvity/Fragment <---> CursorLoader <---> ContentResolver <---> ContentProvider <---> DataStorage
   
 * **Advantages of content providers**
@@ -220,6 +226,7 @@ When you call such a function on an object with a lambda expression provided, it
   The `View` class is a superclass for all GUI components in Android.
   
 * **Custom ViewGroup**
+
   Sometimes you want to group some views into one component to allow them to deal with each other easily through writing some specific code or business logic. You can call that a “compound view”. Compound views give you reusability and modularity.
   
 * **Why use Custom Views?**
@@ -327,7 +334,8 @@ When you call such a function on an object with a lambda expression provided, it
   Bind UI components in your layouts to data sources in your app using a declarative format. Data Binding is the process that establishes a connection between the UI and business logic. When the data changes it's vlaue, the elements that are bound to the data reflect changes automatically.  
   
 * **MVP vs MVVM**
-  MVP - Model View Presenter: Presenter is like a bridge between the view and the model. There is one to one relation between the view and the presenter and therefore is tightly coupled. And is more verbose as each view needs a presenter. 
+
+  MVP - Model View Presenter: Presenter is like a bridge between the view and the model. There is one to one relation between the view and the presenter and therefore is tightly coupled. And is more verbose as each view needs a presenter.<br>
   MVVM - Model View ViewModel: Each of the component is loosely coupled and follows event-driven pattern. VM holds the interaction between the view and the model. And all the business logic goes here. VM is lifecycle aware in which we can use live data and databinding and it is also recommended by Google.ViewModel doesn’t have to know anything about the View and has no reference to View classes
   
 * **Rules for View-ViewModel communication**
@@ -336,7 +344,7 @@ When you call such a function on an object with a lambda expression provided, it
   3. ViewModel uses live data as the main way to communicate to view.
   4. View can call view-model whenever it needs something. ViewModel can provide helper methods for the view.
  
- * **Login uisng MVVM steps**
+* **Login uisng MVVM steps**
 
   Two-way Data Binding allows us to bind objects in the XML layouts such that the object can send data to the layout, and vice versa.
   
@@ -346,8 +354,9 @@ When you call such a function on an object with a lambda expression provided, it
   3. XML file: Databinding - the layout will be wrapped inside <layout> tag and inside the <data> tag will provide the viewmodel path for "type". It takes input from the UI using DataBinding “@=”, stores it in LiveData and displays back on the UI. ViewModel binds the data to the View.
   4. Activity - With DataBinding, the ActivityMainBinding class is auto-generated from the layout. We get the view model by doing something like ViewModelProviders.of(this).get(LoginViewModel.class); in the Observer we can override the onChanged() method
   
-* **How to use Retrofit and coroutines to make network calls and how we use it in MVVM
-**Model** All your data goes in this layer; **Viewmodel** contains the business logic; **View** - Activities, fragments, layouts
+* **How to use Retrofit and coroutines to make network calls and how we use it in MVVM**
+
+**Model** All your data goes in this layer; **Viewmodel** contains the business logic; **View** - Activities, fragments, layouts<br>
 Model - Repository and data lives here. Inside the repository we make retrofit calls. Set the data in LiveData. In ViewModel - we get the data from the repository. 
 View - call the viewmodel to get the data from the livedata which you display in your view
 
@@ -403,59 +412,59 @@ Create a class @Module that contains your method with @Provides in it.
 
   Dagger can create a graph of the dependencies in your project that it can use to find out where it should get those dependencies when they are needed. To make Dagger do this, you need to create an interface and annotate it with @Component. Dagger creates a container as you would have done with manual dependency injection.<br>
   In Dagger-Android, we have to create a component class with a builder/factory, includes every module and we should inject the application context in the Application class after building our project. Here is the Dagger-Android way to construct a component.<br>
-` 
-@Singleton
-@Component(modules = [AndroidInjectionModule::class,ActivityModule::class,ViewModelModule::class,NetworkModule::class])
-interface AppComponent : AndroidInjector<DaggerApplication> {
+ 
+`@Singleton`<br>
+`@Component(modules = [AndroidInjectionModule::class,ActivityModule::class,ViewModelModule::class,NetworkModule::class])`<br>
+`interface AppComponent : AndroidInjector<DaggerApplication> {`<br><br>
 
-  @Component.Factory
-  interface Factory {
-    fun create(@BindsInstance application: Application): AppComponent
-  }
-}`<br>
-`class TheMoviesApplication : DaggerApplication() {
+`  @Component.Factory`<br>
+`  interface Factory {`<br>
+`    fun create(@BindsInstance application: Application): AppComponent`<br>
+`  }`<br>
+`}`<br>
+`class TheMoviesApplication : DaggerApplication() {`<br><br>
 
-  override fun applicationInjector() = DaggerAppComponent.factory().create(this)
+`  override fun applicationInjector() = DaggerAppComponent.factory().create(this)`<br><br>
   
-}`<br>
+`}`<br>
 But in Hilt, we don’t need to create a component, include every module, and build for generating DaggerAppComponent class.
-`@HiltAndroidApp
-class PokedexApp : Application()`
+`@HiltAndroidApp`<br>
+`class PokedexApp : Application()`<br>
 Also, the instance of an App can be injected into other modules by the Hilt<br>
-`/** Provides a binding for an Android BinderFragment Context. */
-@Module
-@InstallIn(ApplicationComponent.class)
-public final class ApplicationContextModule {
-  private final Context applicationContext;
+`/** Provides a binding for an Android BinderFragment Context. */`<br>
+`@Module`<br>
+`@InstallIn(ApplicationComponent.class)`<br>
+`public final class ApplicationContextModule {`<br>
+`  private final Context applicationContext;`<br><br>
 
-  public ApplicationContextModule(Context applicationContext) {
-    this.applicationContext = applicationContext;
-  }
+`  public ApplicationContextModule(Context applicationContext) {`<br>
+`    this.applicationContext = applicationContext;`<br>
+`  }`<br><br>
 
-  @Provides
-  @ApplicationContext
-  Context provideContext() {
-    return applicationContext;
-  }
+`  @Provides`<br>
+`  @ApplicationContext`<br>
+`  Context provideContext() {` <br>
+`    return applicationContext;`<br>
+`  }`<br><br>
 
-  @Provides
-  Application provideApplication() {
-    return (Application) applicationContext.getApplicationContext();
-  }
+`  @Provides`<br>
+`  Application provideApplication() {`<br>
+`    return (Application) applicationContext.getApplicationContext();`<br>
+`  }`<br><br>
 
-}`<br>
+`}`<br>
 Hilt provides the ApplicationContextModule by default and it is followed by the whole application’s lifecycle. By annotating the @HiltAndroidApp annotation, an instance of the App will be injected into that module internally. So we don’t need to inject the instance of the application in the App class.
   
 * **Coroutines**
 
-  Coroutines = Co + Routines. Here, **Co** means cooperation and **Routines** means functions. It means that when functions cooperate with each other, we call it as Coroutines. It's an optimized framework written over the actual threading by taking advantage of the cooperative nature of functions to make it light and yet powerful. So, we can say Coroutines are lightweight threads. A lightweight thread means it doesn't map on native thread (stackless), so it doesn't require context switching on the processor, so they are faster. Coroutines do not replace threads, it’s more like a framework to manage it.
-  Coroutines are able to perform long-running and intensive tasks by suspending execution without blocking the thread and then resuming the execution at some time later. It allows the creation of non-blocking asynchronous code that appears to be synchronous. 
+  Coroutines = Co + Routines. Here, **Co** means cooperation and **Routines** means functions. It means that when functions cooperate with each other, we call it as Coroutines. It's an optimized framework written over the actual threading by taking advantage of the cooperative nature of functions to make it light and yet powerful. So, we can say Coroutines are lightweight threads. A lightweight thread means it doesn't map on native thread (stackless), so it doesn't require context switching on the processor, so they are faster. Coroutines do not replace threads, it’s more like a framework to manage it.<br>
+  Coroutines are able to perform long-running and intensive tasks by suspending execution without blocking the thread and then resuming the execution at some time later. It allows the creation of non-blocking asynchronous code that appears to be synchronous.<br>
  Creating coroutines doesn’t allocate new threads (no memory allocated). Instead, they use predefined thread pools and smart scheduling for the purpose of which task to execute next and which tasks later.
  
 * **Why we need coroutines?**
   
   We have many async tools like RxJava, AsyncTasks, Jobs, Threads, but why there is a need to learn something new?<br>
-  While Using Rx, it requires a lot of effort to get it enough, to use it safely. On the Other hand, AsyncTasks and threads can easily introduce leaks and memory overhead. Even using these tools after so many disadvantages, the code can suffer from callbacks, which can introduce tons of extra code. Not only that, but the code also becomes unreadable as it has many callbacks which ultimately slow down or hang the device leading to poor user experience.
+  While Using Rx, it requires a lot of effort to get it enough, to use it safely. On the Other hand, AsyncTasks and threads can easily introduce leaks and memory overhead. Even using these tools after so many disadvantages, the code can suffer from callbacks, which can introduce tons of extra code. Not only that, but the code also becomes unreadable as it has many callbacks which ultimately slow down or hang the device leading to poor user experience.<br>
   With coroutines we can launch thousandes of coroutine jobs and we can also suspend the function. We also can define scopes with the coroutine job.
   
 * **Coroutine Features**
@@ -498,15 +507,8 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
   - Looper: It is a worker that keeps a thread alive, loops through MessageQueue and sends messages to the corresponding handler to process.
   - Message Queue: It is a queue that has tasks called messages which should be processed
   Using these handler and Main thread looper works fine, but not good solution as it allocates lot of memory. 
-    - #1. we need to create a new thread every time we send data to the background
-    - #2. Every time we need to post data back to the main thread using the handler
-
-JVM will first compile the code 
-to .class file using the compiler
-dex code to machine code by dvm
-dvm convert the compile code along with converting to machine code at the same time - ART
-ART is responsible for allocating memory to the application as well as deallocate the memory. Whenever the activity get destroyed, ART tell the garbage collector to deallocate the memory. 
-There is a problem. There are few instance where garbage collector will try to collect and want get to collect an object thinking that the object is live and shouldn't collect. Garbage collector is not able to collect objects and the memory get collected and we finally get out of memory. This is called memory leaks. 
+    1. we need to create a new thread every time we send data to the background
+    2. Every time we need to post data back to the main thread using the handler 
 
 * **What is work manager?**
   
@@ -546,6 +548,7 @@ There is a problem. There are few instance where garbage collector will try to c
   - Schedulers: Schedulers decides the thread on which Observable should emit the data and on which Observer should receives the data i.e background thread, main thread etc.,
 
 * **Schedulers**
+
   Schedulers basically decides on which thread a task runs, whether main thread or backgournd thread. They are introduced in RxAndroid (AndroidSchedulers.mainThread()) which plays major role in supporting multithreading concept in android applications. List of schedulers: 
   - Schedulers.io() - Used for CPU-intensive works like network calls, database operations, reading disks/files. Maintaings pool of threads
   - AndroidSchedulers.mainThread() - provides access to the main thread. Jobs like updating UI, user interaction.
@@ -555,6 +558,21 @@ There is a problem. There are few instance where garbage collector will try to c
   Strong reference - 
   Weak reference - inner class, bitmap, unregistered 
   Leak cannary library - Android profiler
+  
+* **RxJava Notes**
+  - Observer pattern handles event-basd code but it doesn't have the notion of `onComplete` or `onError`. Developers have to remember to cancel the event listener, which otherwise leads to memory leak. Obsesrvable pattern can handle both async and event-based code. In addition to disposing on lifecycle termination event, there are many operators that can cancel an event-based observable. 
+  - What is an Observable?
+  	- Simply a collection that arrives over time
+	- Can be finitie or infinite
+	- OnNext: push (emit) the next value
+	- OnCompleted: No more values to push
+	- OnError: error occured when trying to push
+   - Cancelling an infinite Observable
+  	- TakeUntil: discard any items emitted by an Observable after a second Observable emits an item or terminates
+	- Take: emit only the first n items emitted by an Observable
+	- TakeWhile: discard items emitted by an Observable after a specified condition becomes false
+	- Amb: given two or more source Observables, emit all of the items from only the first of these Observables to emit an item
+  
   
 * **Converting RxJava to LiveData**
 * **Advantages and Disadvantages of RxJava**
@@ -568,12 +586,12 @@ There is a problem. There are few instance where garbage collector will try to c
    
 * **Types of operators**
 
-  - Filter: 
+  - Filter: Filter items emitted by the source Observable by only emitting those that satisfy a specified predicate
   - Buffer: Buffer gathers items emitted by an Observable into batches and emit the batch instead of emitting one item at a time.
   - Debounce: Debounce operators emits items only when a specified timespan is passed. It's usually used when the Observable is rapidly emitting items but you are only interested in receiving them in timely manner (e.g. Instant search).
   - Zip: combine the values of multiple Observable together through a specific function (eg. attaching a picture to an API result, such as avatar to name).
   
-* **RxJava map opeartors** [*](https://www.androidhive.info/RxJava/map-flatmap-switchmap-concatmap/)
+* **RxJava map opeartors** [*](https://www.androidhive.info/RxJava/map-flatmap-switchmap-concatmap/)<br>
   FlatMap, ConcatMap, SwitchMap - instead of returning the modified item, it returns the Observable itself which can emit data again
   - Map: Used to alter the emitted data. It modifies each item emitted by a source Observable and emits the modified item.
   - FlatMap:  Used when the order is not important and want to send all the network calls simultaneously
@@ -584,7 +602,7 @@ There is a problem. There are few instance where garbage collector will try to c
 
 	Basically a backpressure strategy indicates what to do with emitted items if they can’t be processed as fast as they are received. We can imagine, for instance, a flowable that sends gyroscope data with a really fast frequency and we need to apply a strong computation algorithm over each emitted item.<br>
 
-If the type spend for the algorithm is considerably higher than the time between each item’s emission, then backpressure strategy is applied. (If we use an Observable instead of a Flowable, then we will have a backpressure exception. The available options are drop, buffer, latest.
+	If the type spend for the algorithm is considerably higher than the time between each item’s emission, then backpressure strategy is applied. (If we use an Observable instead of a Flowable, then we will have a backpressure exception. The available options are drop, buffer, latest.
 
 
 * **Firebase**
@@ -599,9 +617,17 @@ If the type spend for the algorithm is considerably higher than the time between
     2. The Firebase Cloud Messaging back end, where all the processing happens.
     3. A transport layer that’s specific to each platform. In Android’s case, this is called the Android Transport Layer.
     4. The SDK on the device where you’ll receive the messages. In this case, called the Android Firebase Cloud Messaging SDK.
+    
+* **Push Notification using FCM** [*](https://blog.mindorks.com/pushing-notifications-in-android-using-fcm)
+	
+	So, when a device is registered to FCM server (on initial startup), we receive a registration token that is used to establish a connection with the FCM server. We access this token by creating a service class which extends `FirebaseMessagingService` and adds it to the Manifest file. To generate the token we need to call 
+`FirebaseInstanceId.getInstance().instanceId`<br>
+`      .addOnCompleteListener(OnCompleteListener { task ->`<br>
+`val token = task.result?.token`<br>
+`})`<br>
+	These unique tokens change when the user  uninstalls/reinstall s,... So we need to generate a new token which is done by overriding `onNewToken()`. Then, we can send it to the backend server where we can save it  and use it to send a notification later. `onMessageReceived()` is called when a message is received from FCM and we can wirite all the logic like generating & handling notification inside this method. 
   
-**Performance Issues** - memory, UI, thread, battery
-moved to dvm to art
+* **Performance Issues** - memory, UI, thread, battery
     
 * **What is TDD?**
 
@@ -614,39 +640,25 @@ moved to dvm to art
     
 * **Mockito**
  
-   Used in Junit testing. 
+   An open source testing framework for Java. Used in Junit testing. 
    
 * **Mock vs Stub vs Spy**
 
   - Mock: A mock is a dummy class replacing a real one, returning something like null or 0 for each method call.
   - Stub: A stub is a dummy class providing some more specific, prepared or pre-recorded, replayed results to certain requests under test. 
   - Spy: A spy is kind of a hybrid between real object and stub, i.e. it is basically the real object with some (not all) methods shadowed by stub methods.
-  
-* **What is REST API**
-  REST stands for REpresentational State Transfer. It is an architectural style that defines constraints for creating web services. It is stateless, i.e, no client session data is stored on the server (eg. Once you make an authentication, you have to repeat every time you make a call).
-  Every data is an entity. 
-
-* **Code Review**
-   
-   Every alternate days we do code review. We check our colleagues code. Peer to Peer review.
-   * Proper namingCovnetion, JavaDocs, Comments
-   * Followed Desisign pattern
-   * Written enough test cases
-   * Any security issues - 
-   Any performance issues - are there any memory leaks, threads, battery, UI
    
 * **Memory Management**
   
   In Android, bitmaps represent the largest contiguous blocks of memory. They occupy heaps, which results in lots of contention to find free space to allocate new bitmaps as we scroll.This then results in more GC events so it can free up memory to provide the necessary space.
   
+* **Memory Leak**
+
+  There are few instance where garbage collector will try to collect and want get to collect an object thinking that the object is live and shouldn't collect. Garbage collector is not able to collect objects and the memory get collected and we finally get out of memory. This is called memory leaks.
+  
 * **Lint Tool**
   
   The lint tool checks your Android project source files for potential bugs and optimization improvements for correctness, security, performance, usability, accessibility, and internationalization. When using Android Studio, configured lint and IDE inspections run whenever you build your app
-  
-* **How does you take updated with latest technology**
-  
-  Google IO conference - 2019: Introduced dark theme, smart replies - , video captioning in video calls
-  News letters, website - ProAndroid, 
   
 * **Github vs Git**
 
@@ -655,8 +667,8 @@ moved to dvm to art
   
 * **Rebase and merge**
 
-  Rebase - Moving or combining a sequence of commits to a new base commit. For instance, if you started doing some development and then another developer made an unrelated change. You probably want to pull and then rebase to base your changes from the current version from the repository.
-  Merge - Merging two different branches. For example, let's say you have created a branch for the purpose of developing a single feature. When you want to bring those changes back to master, you probably want merge 
+  Rebase - Moving or combining a sequence of commits to a new base commit. For instance, if you started doing some development and then another developer made an unrelated change. You probably want to pull and then rebase to base your changes from the current version from the repository.<br>
+  Merge - Merging two different branches. For example, let's say you have created a branch for the purpose of developing a single feature. When you want to bring those changes back to master, you probably want merge.<br>
   
   Differences:
     - Merge preserves the branches while Rebase won't. 
@@ -680,9 +692,6 @@ moved to dvm to art
   - Reduce network calls: We can reduce the network calls by caching the network response.
   - Fetch the data very fast
 
-	attching viewmodel to actvity or fragment?
-	Fragment - 
-
 * **Continuous Integration/ Continuous Deployment (CI/CD)**
   - Pipeline: CI and CD are often represented as a pipeline, where new code enters on one end, flows through a series of stages (build, test, staging, production), and published as a new production release to end users on the other end.
   - CI: It is a process where developers integrate their code into the master/main branch. Each merge triggers an automated code build and test sequence, which ideally runs in less than 10 minutes. A successful CI build may lead to further stages of continuous delivery.
@@ -699,12 +708,6 @@ moved to dvm to art
 * **Navigation**
   
   The navigation component helps you to manage navigations, fragment transactions, backstack, animations, most importantly deeplinking(don't have to use intent-filters). A navigation graph is a resource file that represents all of your app's navigation paths.
-    - 
-  
-
-  
-  onPost()
-  OnPostDelay()
 
 * **Lazy vs lateinit**
   - `lazy { ... }` delegate can only be used for `val` properties, whereas `lateinit` can only be applied to `var`s, because it can't be compiled to a `field`, thus no immutability can be guaranteed
@@ -736,16 +739,22 @@ moved to dvm to art
   - remove static initializers
   - allow mocking without dependency injection
   
-* **RxJava Notes**
-  - Observer pattern handles event-basd code but it doesn't have the notion of `onComplete` or `onError`. Developers have to remember to cancel the event listener, which otherwise leads to memory leak. Obsesrvable pattern can handle both async and event-based code. In addition to disposing on lifecycle termination event, there are many operators that can cancel an event-based observable. 
-  - What is an Observable?
-  	- Simply a collection that arrives over time
-	- Can be finitie or infinite
-	- OnNext: push (emit) the next value
-	- OnCompleted: No more values to push
-	- OnError: error occured when trying to push
-   - Cancelling an infinite Observable
-  	- TakeUntil: discard any items emitted by an Observable after a second Observable emits an item or terminates
-	- Take: emit only the first n items emitted by an Observable
-	- TakeWhile: discard items emitted by an Observable after a specified condition becomes false
-	- Amb: given two or more source Observables, emit all of the items from only the first of these Observables to emit an item
+* **What is REST API?**
+
+  REST stands for REpresentational State Transfer. It is an architectural style that defines constraints for creating web services. It is stateless, i.e, no client session data is stored on the server (eg. Once you make an authentication, you have to repeat every time you make a call).
+  Every data is an entity. 
+
+* **Code Review**
+   
+   Every alternate days we do code review. We check our colleagues code. Peer to Peer review.
+   * Proper namingCovnetion, JavaDocs, Comments
+   * Followed Desisign pattern
+   * Written enough test cases
+   * Any security issues
+   Any performance issues - are there any memory leaks, threads, battery, UI	
+   
+     
+* **How does you take updated with latest technology**
+  
+  Google IO conference - 2019: Introduced dark theme, smart replies - , video captioning in video calls
+  News letters, website - ProAndroid, 
