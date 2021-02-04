@@ -356,9 +356,9 @@ When you call such a function on an object with a lambda expression provided, it
   
 * **How to use Retrofit and coroutines to make network calls and how we use it in MVVM**
 
-**Model** All your data goes in this layer; **Viewmodel** contains the business logic; **View** - Activities, fragments, layouts<br>
-Model - Repository and data lives here. Inside the repository we make retrofit calls. Set the data in LiveData. In ViewModel - we get the data from the repository. 
-View - call the viewmodel to get the data from the livedata which you display in your view
+	**Model** All your data goes in this layer; **Viewmodel** contains the business logic; **View** - Activities, fragments, layouts<br>
+	Model - Repository and data lives here. Inside the repository we make retrofit calls. Set the data in LiveData. In ViewModel - we get the data from the repository.<br>
+	View - call the viewmodel to get the data from the livedata which you display in your view
 
 * **Dependency Injection**
 
@@ -412,48 +412,53 @@ Create a class @Module that contains your method with @Provides in it.
 
   Dagger can create a graph of the dependencies in your project that it can use to find out where it should get those dependencies when they are needed. To make Dagger do this, you need to create an interface and annotate it with @Component. Dagger creates a container as you would have done with manual dependency injection.<br>
   In Dagger-Android, we have to create a component class with a builder/factory, includes every module and we should inject the application context in the Application class after building our project. Here is the Dagger-Android way to construct a component.<br>
- 
-`@Singleton`<br>
-`@Component(modules = [AndroidInjectionModule::class,ActivityModule::class,ViewModelModule::class,NetworkModule::class])`<br>
-`interface AppComponent : AndroidInjector<DaggerApplication> {`<br><br>
+ ```
+@Singleton
+@Component(modules = [AndroidInjectionModule::class,ActivityModule::class,ViewModelModule::class,NetworkModule::class])
+interface AppComponent : AndroidInjector<DaggerApplication> {
 
-`  @Component.Factory`<br>
-`  interface Factory {`<br>
-`    fun create(@BindsInstance application: Application): AppComponent`<br>
-`  }`<br>
-`}`<br>
-`class TheMoviesApplication : DaggerApplication() {`<br><br>
+  @Component.Factory
+  interface Factory {
+    fun create(@BindsInstance application: Application): AppComponent
+  }
+}
+class TheMoviesApplication : DaggerApplication() {
 
-`  override fun applicationInjector() = DaggerAppComponent.factory().create(this)`<br><br>
+  override fun applicationInjector() = DaggerAppComponent.factory().create(this)
   
-`}`<br>
+}
+```
 But in Hilt, we don’t need to create a component, include every module, and build for generating DaggerAppComponent class.
-`@HiltAndroidApp`<br>
-`class PokedexApp : Application()`<br>
+```
+@HiltAndroidApp
+class PokedexApp : Application()
+```
 Also, the instance of an App can be injected into other modules by the Hilt<br>
-`/** Provides a binding for an Android BinderFragment Context. */`<br>
-`@Module`<br>
-`@InstallIn(ApplicationComponent.class)`<br>
-`public final class ApplicationContextModule {`<br>
-`  private final Context applicationContext;`<br><br>
+```
+/** Provides a binding for an Android BinderFragment Context. */
+@Module
+@InstallIn(ApplicationComponent.class)
+public final class ApplicationContextModule {
+  private final Context applicationContext;
 
-`  public ApplicationContextModule(Context applicationContext) {`<br>
-`    this.applicationContext = applicationContext;`<br>
-`  }`<br><br>
+  public ApplicationContextModule(Context applicationContext) {
+    this.applicationContext = applicationContext;
+  }
 
-`  @Provides`<br>
-`  @ApplicationContext`<br>
-`  Context provideContext() {` <br>
-`    return applicationContext;`<br>
-`  }`<br><br>
+  @Provides
+  @ApplicationContext
+  Context provideContext() {
+    return applicationContext;
+  }
 
-`  @Provides`<br>
-`  Application provideApplication() {`<br>
-`    return (Application) applicationContext.getApplicationContext();`<br>
-`  }`<br><br>
+  @Provides
+  Application provideApplication() {
+    return (Application) applicationContext.getApplicationContext();
+  }
 
-`}`<br>
-Hilt provides the ApplicationContextModule by default and it is followed by the whole application’s lifecycle. By annotating the @HiltAndroidApp annotation, an instance of the App will be injected into that module internally. So we don’t need to inject the instance of the application in the App class.
+}
+```
+Hilt provides the ApplicationContextModule by default and it is followed by the whole application’s lifecycle. By annotating the `@HiltAndroidApp` annotation, an instance of the App will be injected into that module internally. So we don’t need to inject the instance of the application in the App class.
   
 * **Coroutines**
 
@@ -621,11 +626,13 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
 * **Push Notification using FCM** [*](https://blog.mindorks.com/pushing-notifications-in-android-using-fcm)
 	
 	So, when a device is registered to FCM server (on initial startup), we receive a registration token that is used to establish a connection with the FCM server. We access this token by creating a service class which extends `FirebaseMessagingService` and adds it to the Manifest file. To generate the token we need to call 
-`FirebaseInstanceId.getInstance().instanceId`<br>
-`      .addOnCompleteListener(OnCompleteListener { task ->`<br>
-`val token = task.result?.token`<br>
-`})`<br>
-	These unique tokens change when the user  uninstalls/reinstall s,... So we need to generate a new token which is done by overriding `onNewToken()`. Then, we can send it to the backend server where we can save it  and use it to send a notification later. `onMessageReceived()` is called when a message is received from FCM and we can wirite all the logic like generating & handling notification inside this method. 
+```
+FirebaseInstanceId.getInstance().instanceId
+      .addOnCompleteListener(OnCompleteListener { task ->
+val token = task.result?.token
+})
+```
+These unique tokens change when the user  uninstalls/reinstall s,... So we need to generate a new token which is done by overriding `onNewToken()`. Then, we can send it to the backend server where we can save it  and use it to send a notification later. `onMessageReceived()` is called when a message is received from FCM and we can wirite all the logic like generating & handling notification inside this method. 
   
 * **Performance Issues** - memory, UI, thread, battery
     
@@ -758,3 +765,6 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
   
   Google IO conference - 2019: Introduced dark theme, smart replies - , video captioning in video calls
   News letters, website - ProAndroid, 
+
+
+:octocat: If you would like to contribute to the Android Cheat Sheet, just make a pull request!
