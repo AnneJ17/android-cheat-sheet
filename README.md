@@ -130,7 +130,7 @@ When you call such a function on an object with a lambda expression provided, it
   
 * **Bound Service**
 
-  Bound service - Allows other components to bind it to the bound service to get some functionalities. One service can have multiple clients. Only when the last component unbounds, the service is stopped. So, it's important to stop the service by overriding the onTaskRemoved() and then calling the stopSelf().<br>
+  Bound service - Allows other components to bind it to the bound service to get some functionalities. One service can have multiple clients. Only when the last component unbounds, the service is stopped. So, it's important to stop the service by overriding the `onTaskRemoved()` and then calling the `stopSelf()`.<br>
   Local bound - client and service in same application. There is 2 way you can bound a service. One is after starting a service and then binding it or by just binding it directly. If you do allow your service to be started and bound, then when the service has been started, the system does not destroy the service when all clients unbind. Instead, you must explicitly stop the service by calling stopSelf() or stopService().<br>
   remote bound - AIDL - to connect to the client.
   
@@ -149,7 +149,7 @@ When you call such a function on an object with a lambda expression provided, it
 
   When implementing AIDL we want to keep some steps.
   1. Create an interface  - Implement the remote service
-  2. class extending service -
+  2. class extending service
 
 * **IntentServices**
 
@@ -206,7 +206,7 @@ When you call such a function on an object with a lambda expression provided, it
   
 * **What is PendingIntent?**
 
-  A pending intent is a token that you give to another application. That is, If you want some one to perform any Intent operation at future point of time on behalf of you, then we will use Pending Intent. For example, the notification manager, alarm manager or other 3rd party applications). This allows the other application to restore the permissions of your application to execute a predefined piece of code.
+  A pending intent is a token that you give to another application. That is, If you want some one to perform any Intent operation at future point of time on behalf of you, then we will use Pending Intent. For example, the notification manager, alarm manager or other 3rd party applications. This allows the other application to restore the permissions of your application to execute a predefined piece of code.
   
 * **Types of data that can pass in intent** 
   - Primitive types - we can pass primitive types via event but have to use serializable or parcelable to pass objects.
@@ -261,11 +261,13 @@ When you call such a function on an object with a lambda expression provided, it
   - onDestroy() - called to do final cleanup of the fragment's state
   - onDetach() - when fragment loose the context of the activity
   
-* **Passing data between fragments**
+* **Passing data between fragments** [*](https://heartbeat.fritz.ai/passing-data-between-fragments-on-android-using-viewmodel-d47fa6773f9c)
+
+	One can implement interfaces or use view model to share data between the fragments. It's not adviced to communicate directly with other fragments as this makes the classes tightly coupled. Using `ViewModel` and `LiveData` to pass data between fragments has a number of advantages, such as separation of controllers from data handling and avoiding repeated data fetching due to configuration changes like screen rotation. This is because `ViewModel` is tied to the activity lifecycle.
   
 * **Ways to add fragment**
-  1. Manually - <fragment id="" name="fully qualified name of the class"/>; name and id attributes are mandatory if using <fragment> tag
-  2. Dynamically add fragment - In the activity and use fragment manager
+  1. Manually - `<fragment id="" name="fully qualified name of the class"/>` Name and id attributes are mandatory if using `<fragment>` tag
+  2. Dynamically - Add fragment in the activity and use fragment manager
 
 
 * **Linear layout vs relative layout vs constraint layout** 
@@ -292,10 +294,10 @@ When you call such a function on an object with a lambda expression provided, it
 
   Adapters acts like a bridge that connects two incompatible classes to work together. Some types of adapters are 
     - BaseAdapter: abstract class which implements ListAdapter and SpinnerAdapter Interface. Hence, we may use it for implementing both ListView and Spinner.
-    - CursorAdapter: more appropriate when there is a database because it does not load all the records as ArrayAdapter. It loads only the visible records, or the records you are querying,
+    - CursorAdapter: more appropriate when there is a database because it does not load all the records as ArrayAdapter. It loads only the visible records, or the records you are querying
     - Array Adapter - Simple adapter where we pass context, layout, data 
     - FragmentPageAdapter - ViewPager 
-    - RecyclerView adapter - 
+    - RecyclerView adapter 
 
 * **Shared Preference and Sqlite**
   
@@ -329,14 +331,17 @@ When you call such a function on an object with a lambda expression provided, it
 
   When we register the Observer in our Activity, we need to override the method onChanged(). The method onChanged() would get trigger whenever the LiveData is changed. Thus in the onChanged(), we can update the changed LiveData onto the View.
   
-* **Data Binding**
+* **Data Binding** [*](https://medium.com/androiddevelopers/data-binding-lessons-learnt-4fd16576b719)
   
-  Bind UI components in your layouts to data sources in your app using a declarative format. Data Binding is the process that establishes a connection between the UI and business logic. When the data changes it's vlaue, the elements that are bound to the data reflect changes automatically.  
+  Bind UI components in your layouts to data sources in your app using a declarative format. Data Binding is the process that establishes a connection between the UI and business logic. When the data changes it's vlaue, the elements that are bound to the data reflect changes automatically.<br>
+  Binding components in the layout file lets you remove many UI framework calls in your activities, making them simpler and easier to maintain. This can also improve your app's performance and help prevent memory leaks and null pointer exceptions.<br>
+  - One-way binding:  there’s only one communication way: from observable to view.
+  - Two-way binding: When properties in the model get updated, so does the UI. When UI elements get updated, the changes get propagated back to the model.
   
 * **MVP vs MVVM**
 
-  MVP - Model View Presenter: Presenter is like a bridge between the view and the model. There is one to one relation between the view and the presenter and therefore is tightly coupled. And is more verbose as each view needs a presenter.<br>
-  MVVM - Model View ViewModel: Each of the component is loosely coupled and follows event-driven pattern. VM holds the interaction between the view and the model. And all the business logic goes here. VM is lifecycle aware in which we can use live data and databinding and it is also recommended by Google.ViewModel doesn’t have to know anything about the View and has no reference to View classes
+  - MVP - Model View Presenter: Presenter is like a bridge between the view and the model. There is one to one relation between the view and the presenter and therefore is tightly coupled. And is more verbose as each view needs a presenter.<br>
+  - MVVM - Model View ViewModel: Each of the component is loosely coupled and follows event-driven pattern. VM holds the interaction between the view and the model. And all the business logic goes here. VM is lifecycle aware in which we can use live data and databinding and it is also recommended by Google.ViewModel doesn’t have to know anything about the View and has no reference to View classes
   
 * **Rules for View-ViewModel communication**
   1. View should not have any logic in it. All logic for the view happens in ViewModel.
@@ -354,9 +359,9 @@ When you call such a function on an object with a lambda expression provided, it
   3. XML file: Databinding - the layout will be wrapped inside <layout> tag and inside the <data> tag will provide the viewmodel path for "type". It takes input from the UI using DataBinding “@=”, stores it in LiveData and displays back on the UI. ViewModel binds the data to the View.
   4. Activity - With DataBinding, the ActivityMainBinding class is auto-generated from the layout. We get the view model by doing something like ViewModelProviders.of(this).get(LoginViewModel.class); in the Observer we can override the onChanged() method
   
-* **How to use Retrofit and coroutines to make network calls and how we use it in MVVM**
+* **MVVM Architectural Pattern**
 
-	**Model** All your data goes in this layer; **Viewmodel** contains the business logic; **View** - Activities, fragments, layouts<br>
+	**Model** - All your data goes in this layer; **Viewmodel** contains the business logic; **View** - Activities, fragments, layouts<br>
 	Model - Repository and data lives here. Inside the repository we make retrofit calls. Set the data in LiveData. In ViewModel - we get the data from the repository.<br>
 	View - call the viewmodel to get the data from the livedata which you display in your view
 
@@ -377,7 +382,7 @@ When you call such a function on an object with a lambda expression provided, it
   
 * **Singleton vs DI**
 
-  When using Singletons in codebase, you loose the insight of what methods are doing? For instance, when class ```Foo``` depends on ```Logger.getInstance()```, ```Foo``` is effectively hiding it's dependencies from consumers. This means you can't fully understand ```Foo``` or use it with confidence unless you read it's source and uncover the fact that it depends on Logger. 
+  When using Singletons in codebase, you loose the insight of what methods are doing. For instance, when class ```Foo``` depends on ```Logger.getInstance()```, ```Foo``` is effectively hiding it's dependencies from consumers. This means you can't fully understand ```Foo``` or use it with confidence unless you read it's source and uncover the fact that it depends on Logger. 
     The singleton pattern places a disproportionate emphasis on the ease of accessing objects. It completely eschews context by requiring that every consumer use an AppDomain-scoped object, leaving no options for varying implementations.
     Therefore Singleton pattern not only make the code harder to read, but also make it harder to unit test. And sometimes it promote hidden coupling, for example what if we need two objects at the complete opposite ends of your object graph to collaborate.
     
@@ -517,7 +522,9 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
 
 * **What is work manager?**
   
-  Defferable, asynchronous task that one can schedule when the work's constraints are satisfied. 
+  WorkManager is intended for work that is deferrable—that is, not required to run immediately—and required to run reliably even if the app exits or the device restarts. For example:
+  - Sending logs or analytics to backend services
+  - Periodically syncing application data with a server
   
 * **What is the problem with AsyncTask?**
   It's goal was to make background Threads which could interact with Main(UI) thread. The most common use of async task is to have it runs a time-consuming operation that updates a portion of the UI when it's completed (in AsyncTask.onPostExecute()).
@@ -558,11 +565,7 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
   - Schedulers.io() - Used for CPU-intensive works like network calls, database operations, reading disks/files. Maintaings pool of threads
   - AndroidSchedulers.mainThread() - provides access to the main thread. Jobs like updating UI, user interaction.
   
-  Disposables - Used to dispose the subscription when Observer no longer wants to listen to Observable. It avoids memory leaks. 
-  
-  Strong reference - 
-  Weak reference - inner class, bitmap, unregistered 
-  Leak cannary library - Android profiler
+* **Disposables** - Used to dispose the subscription when Observer no longer wants to listen to Observable. It avoids memory leaks. 
   
 * **RxJava Notes**
   - Observer pattern handles event-basd code but it doesn't have the notion of `onComplete` or `onError`. Developers have to remember to cancel the event listener, which otherwise leads to memory leak. Obsesrvable pattern can handle both async and event-based code. In addition to disposing on lifecycle termination event, there are many operators that can cancel an event-based observable. 
@@ -661,7 +664,31 @@ These unique tokens change when the user  uninstalls/reinstall s,... So we need 
   
 * **Memory Leak**
 
-  There are few instance where garbage collector will try to collect and want get to collect an object thinking that the object is live and shouldn't collect. Garbage collector is not able to collect objects and the memory get collected and we finally get out of memory. This is called memory leaks.
+  There are few instance where garbage collector will try to collect and want get to collect an object thinking that the object is live and shouldn't collect. Garbage collector is not able to collect objects and the memory get collected with unused objects leads application crash with OutOfMemoryError. This is called memory leaks.
+  
+* **Common causes of memory leaks**
+
+	Most memory leaks are caused by bugs related to the lifecycle of objects.
+	- Adding a `Fragment` instance to the backstack without clearing that Fragment’s view fields in `Fragment.onDestroyView()`[*](https://stackoverflow.com/questions/59503689/could-navigation-arch-component-create-a-false-positive-memory-leak/59504797#59504797)
+	- Storing an `Activity` instance as a `Context` field in an object that survives activity recreation due to configuration changes.
+	- Registering a listener, broadcast receiver or RxJava subscription which references an object with lifecycle, and forgetting to unregister when the lifecycle reaches its end.
+
+* **Types of reference** [*](https://medium.com/google-developer-experts/finally-understanding-how-references-work-in-android-and-java-26a0d9c92f83)
+
+  A Reference consist addresses and class information about the object being referenced. Assigning Reference will not create distinct copies of Objects. All reference variables are referring to same Object.Depending upon how objects are garbage collected, references to those objects are grouped into 4 types.
+  - Strong reference - Anytime we create a new object, a strong reference is by default created. This kind of reference makes the referenced object not eligible for Garbage Collection
+  - Weak reference - They are likely to be garbage collected when JVM runs garbage collector thread (inner class, bitmap, unregistered)
+  - Soft references - a SoftReference will beg to the GC to stay in memory unless there is no other option. That is, it can be deleted from a container if the clients are no longer referencing them and memory is tight.
+  - Phantom references - It points to objects that are already dead and have been finalised.
+  
+* **Leak cannary library** - LeakCanary is a memory leak detection library for Android which help you find and fix these memory leaks during development.
+
+* **Android profiler** 
+	The Android Profiler tools provide real-time data to help you to understand how your app uses CPU, memory, network, and battery resources.
+	- Inspect CPU activity and traces with CPU Profiler
+	- Inspect the Java heap and memory allocations with Memory Profiler
+	- Inspect network traffic with Network Profiler
+	- Inspect energy usage with Energy Profiler
   
 * **Lint Tool**
   
@@ -707,10 +734,17 @@ These unique tokens change when the user  uninstalls/reinstall s,... So we need 
   
 * **Data Store**
   
-  - Encrypting data
+  Jetpack DataStore is a data storage solution that allows you to store key-value pairs (like `SharedPreferences`) or typed objects with protocol buffers. DataStore uses Kotlin coroutines and Flow to store data asynchronously, consistently, and transactionally. DataStore is ideal for small, simple datasets and is a replacement for SharedPreferences.
+
+* **DataStore vs SharedPreferences** [*](https://blog.mindorks.com/jetpack-datastore-preferences)
+  - `SharedPreference` has some drawbacks like it provided synchronous APIs -but it’s not MAIN-thread-safe! whereas DataStore is safe to use in UI thread because it uses `Dispatchers.IO` under the hood
+  - DataStore Preferences support Kotlin Coroutines Flow API by default.
+  - It’s safe from runtime exceptions
+  - It also provides a way to migrate from `SharedPreferences`
+  - It provides Type safety (Using Protocol buffers)
   
 * **Paging**
-  - Don't require the consumer to download all the data at once. 
+  - Don't require the consumer to download all the data at once. Loading partial data on demand reduces usage of network bandwidth and system resources.
   
 * **Navigation**
   
