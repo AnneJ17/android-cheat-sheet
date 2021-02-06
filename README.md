@@ -1,5 +1,31 @@
 # Android Cheat Sheet
 
+## Table of contents
+1. [App Basics](#basics)
+2. [Activities](#activities)
+3. [Intent & Intent Filters](#intents)
+4. [Services](#services)
+5. [Architecture Components](#components)
+    1. [DataStore](#datastore)
+    2. [LiveData](#livedata)
+    3. [ViewModel](#viewmodel)
+    4. [DataBinding](#databinding)
+    5. [Paging](#paging)
+    6. [Navigation](#navigation)
+    7. [WorkManager](#workmanager)
+6. [Background Tasks](#tasks)
+    1. [Broadcast](#broadcast)
+    2. [RxJava](#rxjava)
+    3. [Coroutines](#coroutines)
+7. [App Data](#data)
+8. [Firebase](#firebase)
+9. [Best Practices](#practices)
+    1. [Dependency Injection](#DI)
+    2. [Testing](#testing)
+    3. [Performance](#performance)
+
+## App Basics <a name="basics"></a>
+
 * **Kotlin vs Java**
 
   Kotlin is a statically typed open source programming language developed by JetBrains. It runs on JVM and so can be used anywhere we use Java. 
@@ -44,27 +70,7 @@
 * **What is Manifest file?** 
 
   It is an application level configuration file. All the metadata of the application like appName, launch icon, activities, services, and permissions are found here.
-  
-* **What is res folder?** 
-
-  Keep all the xml files needded of your application which are used for designing or for storing data  
-    - Drawables: Include static contents (images)
-    - Layout: xml files that represents the UI
-    - Mipmap: launch icons
-    - Values: data files - colors.xml, strings.xml, styles.xml, dimens.xml
-    
-* **What are launch modes?**
-  
-  Launch mode is an instruction denoting how an activity should be launched. There are 4 modes:-
-    1. standard: This is the default mode where the system creates a new instance of the activity in the target task or routes intent to it.
-    2. singleTop: Activity will be created once and will be on top. If an instance of the activity already exists at the top of the target task, the system routes the intent to that instance through a call to its onNewIntent() method. 
-    3. singleTask: Here, no multiple instances are created. The system creates the activity at the root of a new task and routes the intent to it. 
-    4. singleInstance: No multiple instances,Same as "singleTask", except that the system doesn't launch any other activities into the task holding the instance.
-    
-* **singleTask vs singleInstance**
-  
-  The "singleTask" and "singleInstance" modes also differ from each other in only one respect: A "singleTask" activity allows other activities to be part of its task. It's always at the root of its task, but other activities (necessarily "standard" and "singleTop" activities) can be launched into that task. A "singleInstance" activity, on the other hand, permits no other activities to be part of its task.
-
+ 
 * **Scope functions**
   
   The Kotlin standard library contains several functions whose sole purpose is to execute a block of code within the context of an object. 
@@ -77,6 +83,16 @@ When you call such a function on an object with a lambda expression provided, it
    | apply          | this                 | the object     |
    | with           | this                 | Lambda result  |
    | also           | it                   | the object     |
+
+* **Lazy vs lateinit**
+  - `lazy { ... }` delegate can only be used for `val` properties, whereas `lateinit` can only be applied to `var`s, because it can't be compiled to a `field`, thus no immutability can be guaranteed
+  - lateinit var has a backing field which stores the value, and by lazy { ... } creates a delegate object in which the value is stored once calculated, stores the reference to the delegate instance in the class object and generates the getter for the property that works with the delegate instance. So if you need the backing field present in the class, use lateinit;
+  
+* **Inline function**
+
+  So, calling non-inline function and passing a lambda to it will always create an instance of an object. But when we use the keyword 'inline', no new instance is created, instead, the code around the invocation of block inside the inlined function will be copied to the call site. Inlining works best for functions with parameters of functional types or lambdas(Higher-order functions). You wouldn't want to inline by default: Inlining may cause the generated code to grow; however, if we do it in a reasonable way (i.e. avoiding inlining large functions), it will pay off in performance
+
+## Activities <a name="activities"></a>
  
 * **What is Activity?** 
 
@@ -86,6 +102,135 @@ When you call such a function on an object with a lambda expression provided, it
 
   Contains various methods that we can use to track the state of the activity. If we wish to execute some logic then we can override these methods and we can have our own implementation. There are 7 lifecycle methods - onCreate(), onStart(), onResume(), onPause(), onStop(), onRestart(), onDestroy()
   
+* **What are launch modes?**
+  
+  Launch mode is an instruction denoting how an activity should be launched. There are 4 modes:-
+    1. standard: This is the default mode where the system creates a new instance of the activity in the target task or routes intent to it.
+    2. singleTop: Activity will be created once and will be on top. If an instance of the activity already exists at the top of the target task, the system routes the intent to that instance through a call to its onNewIntent() method. 
+    3. singleTask: Here, no multiple instances are created. The system creates the activity at the root of a new task and routes the intent to it. 
+    4. singleInstance: No multiple instances,Same as "singleTask", except that the system doesn't launch any other activities into the task holding the instance.
+    
+* **singleTask vs singleInstance**
+  
+  The "singleTask" and "singleInstance" modes also differ from each other in only one respect: A "singleTask" activity allows other activities to be part of its task. It's always at the root of its task, but other activities (necessarily "standard" and "singleTop" activities) can be launched into that task. A "singleInstance" activity, on the other hand, permits no other activities to be part of its task.
+
+  
+* **Fragment**
+  Fragments can be used as part of your application's layout, allowing you to better modularize your code and more easily adjust your user interface to the screen it is running on. In short, fragment segments your app into multiple, independent screens that are hosted within an Activity.
+  - modularity - divide UI to subsections 
+  - reusability - same fragment can be used in other activities
+  - adaptability -  easily adjust your UI to the screen it is running on.
+  
+* **Fragment lifecycle**
+  - onAttach() this is the method which make sure the fragment is attached with the activity and Where fragment can access the context of the activity
+  - onCreate() - initial creation of the fragment
+  - onCreateView() - setup the layout of the fragment
+  - onActivityCreated() - creates and returns the view hierarchy associated with the fragment.
+  - onStart() - makes the fragment visible to the user
+  - onResume() - makes the fragment begin interacting with the user
+  - onPause() - fragment is no longer interacting with the user either because its activity is being paused or a fragment operation is modifying it in the activity
+  - onStop() - fragment is no longer visible to the user either because its activity is being stopped or a fragment operation is modifying it in the activity
+  - onDestroyView() - allows the fragment to clean up resources associated with its View
+  - onDestroy() - called to do final cleanup of the fragment's state
+  - onDetach() - when fragment loose the context of the activity
+  
+* **Passing data between fragments** [*](https://heartbeat.fritz.ai/passing-data-between-fragments-on-android-using-viewmodel-d47fa6773f9c)
+
+	One can implement interfaces or use view model to share data between the fragments. It's not adviced to communicate directly with other fragments as this makes the classes tightly coupled. Using `ViewModel` and `LiveData` to pass data between fragments has a number of advantages, such as separation of controllers from data handling and avoiding repeated data fetching due to configuration changes like screen rotation. This is because `ViewModel` is tied to the activity lifecycle.
+  
+* **Ways to add fragment**
+  1. Manually - `<fragment id="" name="fully qualified name of the class"/>` Name and id attributes are mandatory if using `<fragment>` tag
+  2. Dynamically - Add fragment in the activity and use fragment manager
+  
+* **What is ViewGroup?**
+
+  A `ViewGroup` is a special view that can contain other views (called children). The view group is the base class for layouts and views containers.<br>
+  The `View` class is a superclass for all GUI components in Android.
+  
+* **Custom ViewGroup**
+
+  Sometimes you want to group some views into one component to allow them to deal with each other easily through writing some specific code or business logic. You can call that a “compound view”. Compound views give you reusability and modularity.
+  
+* **Why use Custom Views?**
+  - Innovative UI design or animation
+  - Different user interaction
+  - Performance optimization
+  - Reusability
+  
+* **Custom View methods**
+
+  Android draws the layout hierarchy in three stages:
+  - Measuring stage: `onMeasure()` - Each view must measure itself
+  - Layout stage: each ViewGroup finds the right position for its children on the screen by using the child size and also by following the layout rules.
+  - Drawing stage: `onDraw()` - after measuring and positioning all of the views, each view happily draws itself. This method provides a canvas for that. `invalidate()`: makes Android redraw the view by calling onDraw()
+  
+* **What is res folder?** 
+
+  Keep all the xml files needded of your application which are used for designing or for storing data  
+    - Drawables: Include static contents (images)
+    - Layout: xml files that represents the UI
+    - Mipmap: launch icons
+    - Values: data files - colors.xml, strings.xml, styles.xml, dimens.xml
+ 
+* **Linear layout vs relative layout vs constraint layout** 
+  - LinearLayout - used when we want to arrange the views/widgets in a linear fashion either horizontal or vertical
+  - constraint layout - optimize and flatten the view hierarchy - avoid nesting of the views to get better performance. 
+  - Relative layout - nested and have to position it, 
+  - Framelayout - container as a placeholder as it's an empty layout
+  
+* **When to use coordinate layout?**
+  
+  Coordinate layout position top-level application widgets, such as AppBarLayout and FloatingActionButton. 
+
+* **List view vs recycler view**
+
+  * <ini>ListView</ini> - displays all the items vertically in a scrollable fashion and creates view for each items. List View being rebuilt/redrawn too many times as the user scrolls result in performance overhead on the CPU.
+  * <ini>RecyclerView</ini> - It's an advanced form of list view.
+    1. Reuses cells while scrolling up/down - this is possible with implementing View Holder in the ListView adapter, but it was an optional thing, while in the RecycleView it's the default way of writing adapter. Therefore, memory efficient because it keeps on recycling the view as the view is gotten from the view holder. ViewHolder holds the view and when the recycler view recycles it gets the view from the ViewHolder.
+    2. Decouples list from its container - so you can put list items easily at run time in the different containers (linearLayout, gridLayout, staggeredLayout) with setting LayoutManager.
+    3. Animates common list actions - Animations are decoupled and delegated to ItemAnimator.
+    4. Item decoration - gives us huge control to develop and have custom divider, space, borders etc
+    5. OnItemTocuhListener - handle the user interaction and to enhance user experience. Useful for gestural manipulation of item views (on slide delete)
+
+* **Adapters**
+
+  Adapters acts like a bridge that connects two incompatible classes to work together. Some types of adapters are 
+    - BaseAdapter: abstract class which implements ListAdapter and SpinnerAdapter Interface. Hence, we may use it for implementing both ListView and Spinner.
+    - CursorAdapter: more appropriate when there is a database because it does not load all the records as ArrayAdapter. It loads only the visible records, or the records you are querying
+    - Array Adapter - Simple adapter where we pass context, layout, data 
+    - FragmentPageAdapter - ViewPager 
+    - RecyclerView adapter
+    
+## Intent & Intent Filters
+
+* **What is an Intent?** <a name="intents"></a>
+
+  `Intent` is a messaging object that carries information that the Android system uses to determine which component to start plus the information that the recipient component uses in order to function properly. Through intent, one can start a new actvity, start a service, deliver a broadcast, open a web page, camera.
+  1. Explicit intent - Know both the action and the target component
+  2. Implicit inetnt - Know the action (opening 3rd party components) but don't know the target component
+  
+* **What is sticky intent?**
+  
+  - Sticky intent: Sticks with Android, for future broadcast listeners. It is a broadcast from sendStickyBroadcast() method such that the intent floats around even after the broadcast, allowing others to collect data from it. The Android system uses sticky broadcast for certain system information. For example if BATTERY_LOW event occurs then that Intent will stick with Android so that any future requests for BATTERY_LOW, will return the Intent.
+  
+* **What is PendingIntent?**
+
+  A pending intent is a token that you give to another application. That is, If you want some one to perform any Intent operation at future point of time on behalf of you, then we will use Pending Intent. For example, the notification manager, alarm manager or other 3rd party applications. This allows the other application to restore the permissions of your application to execute a predefined piece of code.
+  
+* **Types of data that can pass in intent** 
+  - Primitive types - we can pass primitive types via event but have to use serializable or parcelable to pass objects.
+  - Serializables - We have to make the object's class implement Serializable. It converts the object into byte streams and java has it's on implementation for serializable. Unfortunately, this approach is slow as we use reflection. This method creates a lot of temporary objects and causes quite a bit of garbage collection.
+  - Parcelable - Parcelable give better performance as we are being explicit about the serialization process instead of using reflection to infer it. We have to implement parcelablel interface. `writeToParce` responsible for serializing the data, and `Parcelable.Creator` is responsible for desirializing.
+
+* **What is Intent Filter?**
+  
+  Intent filters specifies the types of intents that an activity, service, or broadcast receiver can respond to. It filter out intents that these components are willing to receive. When you create an implicit intent, the Android system finds the appropriate component to start by comparing the contents of the intent to the intent filters declared in the manifest file of other apps on the device.<br>
+  <action> -> generic action to perform (eg. ACTION_MAIN - main entry point)
+  <category> -> what kind of component that should handle the intent (eg. CATEGORY_DEFAULT, CATEGORY_BROWSABLE, CATEGORY_LAUNCHER)
+  <data> -> Declaes the data type accepted to be acted on. Can be just a URI, or both a data type(MIME type) and a URI.
+
+## Services <a name="services"></a>
+
 * **What is a service?**
 
   A service is one of the Android component that performs long running task in the background, <ini>even when the user is not interacting with the application</ini>. By default, service runs on the main thread and should create a new thread if performing intensive or blocking operations to avoid ANR errors. The service lifecycle —from when it's created to when it's destroyed— can follow either of these two paths: started service, 
@@ -104,6 +249,10 @@ When you call such a function on an object with a lambda expression provided, it
   - onBind()
   - onCreate()
   - onDestroy()
+ 
+* **IntentServices**
+
+  The IntentService is used to perform a certain task in the background. Once done, the instance of IntentService terminates itself automatically. An example for its usage would be downloading certain resources from the internet. It offers onHandleIntent() method which will be asynchronously called by the Android system.
   
 * **Creating an IntentService**
   - define a class within your application that extends IntentService and defines the onHandleIntent
@@ -150,162 +299,21 @@ When you call such a function on an object with a lambda expression provided, it
   When implementing AIDL we want to keep some steps.
   1. Create an interface  - Implement the remote service
   2. class extending service
+  
+## Architecture Components <a name="components"></a>
 
-* **IntentServices**
+* **Data Store** <a name="datastore"></a>
+  
+  Jetpack DataStore is a data storage solution that allows you to store key-value pairs (like `SharedPreferences`) or typed objects with protocol buffers. DataStore uses Kotlin coroutines and Flow to store data asynchronously, consistently, and transactionally. DataStore is ideal for small, simple datasets and is a replacement for SharedPreferences.
 
-  The IntentService is used to perform a certain task in the background. Once done, the instance of IntentService terminates itself automatically. An example for its usage would be downloading certain resources from the internet. It offers onHandleIntent() method which will be asynchronously called by the Android system.
+* **DataStore vs SharedPreferences** [*](https://blog.mindorks.com/jetpack-datastore-preferences)
+  - `SharedPreference` has some drawbacks like it provided synchronous APIs -but it’s not MAIN-thread-safe! whereas DataStore is safe to use in UI thread because it uses `Dispatchers.IO` under the hood
+  - DataStore Preferences support Kotlin Coroutines Flow API by default.
+  - It’s safe from runtime exceptions
+  - It also provides a way to migrate from `SharedPreferences`
+  - It provides Type safety (Using Protocol buffers)
   
-* **Components of RoomDB**
-
-  - The database class that holds the database and serves as the main access point for the underlying connection to your app's persisted data.
-  - Data entities that represent tables in your app's database.
-  - Data access objects (DAOs) that provide methods that your app can use to query, update, insert, and delete data in the database.
-
-
-* **RoomDB vs Sqlite**
-  1. In the room there is sql verification done at compile time
-  2. When schema changes you need to upgrade the affected sql queries Room solve this problem very easily
-  3. We have to write lot of boiler plate code to convert sql queries and java object but room maps our database object to java object without any boiler plate code
-  4. Room is built to work with live data and Rxjava for data observation while sqlite does not
-  
-  
-* **What is content provider?**
-
-  Content providers are used when there is a need to share data between multiple applications as Android-databases (Sqlite) created in Android are visible only to the application that created them.It let you centralize content in one place and different applications can access it. When you want to access data in a content provider, you use the ContentResolver object in your application's Context to communicate with the provider as a client. The ContentResolver methods provide the basic "CRUD" (create, retrieve, update, and delete) functions of persistent storage. In most cases this data is stored in an SQlite database. The CursorLoader objects rely on content providers to run asynchronous queries and then return the results to the UI layer in your application.<br>
-  Actvity/Fragment <---> CursorLoader <---> ContentResolver <---> ContentProvider <---> DataStorage
-  
-* **Advantages of content providers**
-  - Content providers offer granular control over the permissions for accessing data.
-  - extra level of abstraction over your data to make it easier to change internally (changing underlying database structure).
-  
-* **What is broadcast receiver?**[*](https://developer.android.com/guide/components/broadcasts)
-  
-  BroadcastReceiver is a dormant component of android that listens to system-wide broadcast events or intents. That is, it allows you to register for system or application events. Some examples of system wide generated intents are:- 
-    - android.intent.action.BATTERY_LOW
-    - android.intent.action.BOOT_COMPLETED 
-    - android.intent.action.CALL
-    - android.intent.action.DATE_CHANGED
-    - android.intent.action.REBOOT
-    - android.net.conn.CONNECTIVITY_CHANGE
-    
-* **Setting up Broadcast Receiver**
-  1. Creating a broadcast receiver - extend the BroadcastReceiver abstract class and override the onReceive()
-  2. Registering a broadcast receiver - There are 2 ways to do it.
-      1. By defining it in the AndroidManifest.xml  
-      2. By defining it programmatically - Create an `IntentFilter` and register the receiver by calling `registerReceiver(BroadcastReceiver, IntentFilter)`
-      
-* **What is an Intent?**
-
-  `Intent` is a messaging object that carries information that the Android system uses to determine which component to start plus the information that the recipient component uses in order to function properly. Through intent, one can start a new actvity, start a service, deliver a broadcast, open a web page, camera.
-  1. Explicit intent - Know both the action and the target component
-  2. Implicit inetnt - Know the action (opening 3rd party components) but don't know the target component
-  
-* **What is sticky intent?**
-  
-  - Sticky intent: Sticks with Android, for future broadcast listeners. It is a broadcast from sendStickyBroadcast() method such that the intent floats around even after the broadcast, allowing others to collect data from it. The Android system uses sticky broadcast for certain system information. For example if BATTERY_LOW event occurs then that Intent will stick with Android so that any future requests for BATTERY_LOW, will return the Intent.
-  
-* **What is PendingIntent?**
-
-  A pending intent is a token that you give to another application. That is, If you want some one to perform any Intent operation at future point of time on behalf of you, then we will use Pending Intent. For example, the notification manager, alarm manager or other 3rd party applications. This allows the other application to restore the permissions of your application to execute a predefined piece of code.
-  
-* **Types of data that can pass in intent** 
-  - Primitive types - we can pass primitive types via event but have to use serializable or parcelable to pass objects.
-  - Serializables - We have to make the object's class implement Serializable. It converts the object into byte streams and java has it's on implementation for serializable. Unfortunately, this approach is slow as we use reflection. This method creates a lot of temporary objects and causes quite a bit of garbage collection.
-  - Parcelable - Parcelable give better performance as we are being explicit about the serialization process instead of using reflection to infer it. We have to implement parcelablel interface. `writeToParce` responsible for serializing the data, and `Parcelable.Creator` is responsible for desirializing.
-
-* **What is Intent Filter?**
-  
-  Intent filters specifies the types of intents that an activity, service, or broadcast receiver can respond to. It filter out intents that these components are willing to receive. When you create an implicit intent, the Android system finds the appropriate component to start by comparing the contents of the intent to the intent filters declared in the manifest file of other apps on the device.<br>
-  <action> -> generic action to perform (eg. ACTION_MAIN - main entry point)
-  <category> -> what kind of component that should handle the intent (eg. CATEGORY_DEFAULT, CATEGORY_BROWSABLE, CATEGORY_LAUNCHER)
-  <data> -> Declaes the data type accepted to be acted on. Can be just a URI, or both a data type(MIME type) and a URI.
-  
-* **What is ViewGroup?**
-
-  A `ViewGroup` is a special view that can contain other views (called children). The view group is the base class for layouts and views containers.<br>
-  The `View` class is a superclass for all GUI components in Android.
-  
-* **Custom ViewGroup**
-
-  Sometimes you want to group some views into one component to allow them to deal with each other easily through writing some specific code or business logic. You can call that a “compound view”. Compound views give you reusability and modularity.
-  
-* **Why use Custom Views?**
-  - Innovative UI design or animation
-  - Different user interaction
-  - Performance optimization
-  - Reusability
-  
-* **Custom View methods**
-
-  Android draws the layout hierarchy in three stages:
-  - Measuring stage: `onMeasure()` - Each view must measure itself
-  - Layout stage: each ViewGroup finds the right position for its children on the screen by using the child size and also by following the layout rules.
-  - Drawing stage: `onDraw()` - after measuring and positioning all of the views, each view happily draws itself. This method provides a canvas for that. `invalidate()`: makes Android redraw the view by calling onDraw()
- 
-* **Fragment**
-  Fragments can be used as part of your application's layout, allowing you to better modularize your code and more easily adjust your user interface to the screen it is running on. In short, fragment segments your app into multiple, independent screens that are hosted within an Activity.
-  - modularity - divide UI to subsections 
-  - reusability - same fragment can be used in other activities
-  - adaptability -  easily adjust your UI to the screen it is running on.
-  
-* **Fragment lifecycle**
-  - onAttach() this is the method which make sure the fragment is attached with the activity and Where fragment can access the context of the activity
-  - onCreate() - initial creation of the fragment
-  - onCreateView() - setup the layout of the fragment
-  - onActivityCreated() - creates and returns the view hierarchy associated with the fragment.
-  - onStart() - makes the fragment visible to the user
-  - onResume() - makes the fragment begin interacting with the user
-  - onPause() - fragment is no longer interacting with the user either because its activity is being paused or a fragment operation is modifying it in the activity
-  - onStop() - fragment is no longer visible to the user either because its activity is being stopped or a fragment operation is modifying it in the activity
-  - onDestroyView() - allows the fragment to clean up resources associated with its View
-  - onDestroy() - called to do final cleanup of the fragment's state
-  - onDetach() - when fragment loose the context of the activity
-  
-* **Passing data between fragments** [*](https://heartbeat.fritz.ai/passing-data-between-fragments-on-android-using-viewmodel-d47fa6773f9c)
-
-	One can implement interfaces or use view model to share data between the fragments. It's not adviced to communicate directly with other fragments as this makes the classes tightly coupled. Using `ViewModel` and `LiveData` to pass data between fragments has a number of advantages, such as separation of controllers from data handling and avoiding repeated data fetching due to configuration changes like screen rotation. This is because `ViewModel` is tied to the activity lifecycle.
-  
-* **Ways to add fragment**
-  1. Manually - `<fragment id="" name="fully qualified name of the class"/>` Name and id attributes are mandatory if using `<fragment>` tag
-  2. Dynamically - Add fragment in the activity and use fragment manager
-
-
-* **Linear layout vs relative layout vs constraint layout** 
-  - LinearLayout - used when we want to arrange the views/widgets in a linear fashion either horizontal or vertical
-  - constraint layout - optimize and flatten the view hierarchy - avoid nesting of the views to get better performance. 
-  - Relative layout - nested and have to position it, 
-  - Framelayout - container as a placeholder as it's an empty layout
-  
-* **When to use coordinate layout?**
-  
-  Coordinate layout position top-level application widgets, such as AppBarLayout and FloatingActionButton. 
-
-* **List view vs recycler view**
-
-  * <ini>ListView</ini> - displays all the items vertically in a scrollable fashion and creates view for each items. List View being rebuilt/redrawn too many times as the user scrolls result in performance overhead on the CPU.
-  * <ini>RecyclerView</ini> - It's an advanced form of list view.
-    1. Reuses cells while scrolling up/down - this is possible with implementing View Holder in the ListView adapter, but it was an optional thing, while in the RecycleView it's the default way of writing adapter. Therefore, memory efficient because it keeps on recycling the view as the view is gotten from the view holder. ViewHolder holds the view and when the recycler view recycles it gets the view from the ViewHolder.
-    2. Decouples list from its container - so you can put list items easily at run time in the different containers (linearLayout, gridLayout, staggeredLayout) with setting LayoutManager.
-    3. Animates common list actions - Animations are decoupled and delegated to ItemAnimator.
-    4. Item decoration - gives us huge control to develop and have custom divider, space, borders etc
-    5. OnItemTocuhListener - handle the user interaction and to enhance user experience. Useful for gestural manipulation of item views (on slide delete)
-
-* **Adapetrs**
-
-  Adapters acts like a bridge that connects two incompatible classes to work together. Some types of adapters are 
-    - BaseAdapter: abstract class which implements ListAdapter and SpinnerAdapter Interface. Hence, we may use it for implementing both ListView and Spinner.
-    - CursorAdapter: more appropriate when there is a database because it does not load all the records as ArrayAdapter. It loads only the visible records, or the records you are querying
-    - Array Adapter - Simple adapter where we pass context, layout, data 
-    - FragmentPageAdapter - ViewPager 
-    - RecyclerView adapter 
-
-* **Shared Preference and Sqlite**
-  
-  There are 4 ways to store data locally - Shared preference, Sqlite, Cotent Providers, External/Internal storage.<br>
-  &nbsp;&nbsp;&nbsp;We use shared preference for saving small amount of data like app setting (theme), login status, user preference (notification status). It saves the data in form of key value pair and hence we can save only primitive type data like string, boolean, integers etc but we cannot store an object. Whereas, Sqlite is a relational database where we can store huge amount of data.
-  
-
-* **LiveData, MutableLiveData and MediatorLiveData**
+* **LiveData, MutableLiveData and MediatorLiveData** <a name="livedata"></a>
 
   The below relation is taken from [Android Developer Site](https://developer.android.com/reference/android/arch/lifecycle/MediatorLiveData)
   ```java.lang.Object
@@ -331,12 +339,28 @@ When you call such a function on an object with a lambda expression provided, it
 
   When we register the Observer in our Activity, we need to override the method onChanged(). The method onChanged() would get trigger whenever the LiveData is changed. Thus in the onChanged(), we can update the changed LiveData onto the View.
   
-* **Data Binding** [*](https://medium.com/androiddevelopers/data-binding-lessons-learnt-4fd16576b719)
+* **ViewModel** <a name="viewmodel"></a>
+  
+* **Data Binding** <a name="databinding"></a> [*](https://medium.com/androiddevelopers/data-binding-lessons-learnt-4fd16576b719)
   
   Bind UI components in your layouts to data sources in your app using a declarative format. Data Binding is the process that establishes a connection between the UI and business logic. When the data changes it's vlaue, the elements that are bound to the data reflect changes automatically.<br>
   Binding components in the layout file lets you remove many UI framework calls in your activities, making them simpler and easier to maintain. This can also improve your app's performance and help prevent memory leaks and null pointer exceptions.<br>
   - One-way binding:  there’s only one communication way: from observable to view.
   - Two-way binding: When properties in the model get updated, so does the UI. When UI elements get updated, the changes get propagated back to the model.
+  
+* **Paging** <a name="paging"></a>
+  - Don't require the consumer to download all the data at once. Loading partial data on demand reduces usage of network bandwidth and system resources.
+  
+* **Navigation** <a name="navigation"></a>
+  
+  The navigation component helps you to manage navigations, fragment transactions, backstack, animations, most importantly deeplinking(don't have to use intent-filters). A navigation graph is a resource file that represents all of your app's navigation paths.
+  
+  
+* **What is work manager?** <a name="workmanager"></a>
+  
+  WorkManager is intended for work that is deferrable—that is, not required to run immediately—and required to run reliably even if the app exits or the device restarts. For example:
+  - Sending logs or analytics to backend services
+  - Periodically syncing application data with a server
   
 * **MVP vs MVVM**
 
@@ -364,6 +388,225 @@ When you call such a function on an object with a lambda expression provided, it
 	**Model** - All your data goes in this layer; **Viewmodel** contains the business logic; **View** - Activities, fragments, layouts<br>
 	Model - Repository and data lives here. Inside the repository we make retrofit calls. Set the data in LiveData. In ViewModel - we get the data from the repository.<br>
 	View - call the viewmodel to get the data from the livedata which you display in your view
+
+## Background Tasks <a name="tasks"></a>
+
+* **Handler, Thread, Looper, and MessageQueue**
+
+  - Main thread is responsible for handling events from all over the app like callbacks associated with the lifecycle
+  - Handlers: For comomunicating between the threads. It enqueues task in the MessageQueue using Looper and also executes them when the task comes out of the MessageQueue.
+  - Looper: It is a worker that keeps a thread alive, loops through MessageQueue and sends messages to the corresponding handler to process.
+  - Message Queue: It is a queue that has tasks called messages which should be processed
+  Using these handler and Main thread looper works fine, but not good solution as it allocates lot of memory. 
+    1. we need to create a new thread every time we send data to the background
+    2. Every time we need to post data back to the main thread using the handler 
+
+* **What is broadcast receiver?** <a name="broadcast"></a> [*](https://developer.android.com/guide/components/broadcasts)
+  
+  BroadcastReceiver is a dormant component of android that listens to system-wide broadcast events or intents. That is, it allows you to register for system or application events. Some examples of system wide generated intents are:- 
+    - android.intent.action.BATTERY_LOW
+    - android.intent.action.BOOT_COMPLETED 
+    - android.intent.action.CALL
+    - android.intent.action.DATE_CHANGED
+    - android.intent.action.REBOOT
+    - android.net.conn.CONNECTIVITY_CHANGE
+    
+* **Setting up Broadcast Receiver**
+  1. Creating a broadcast receiver - extend the BroadcastReceiver abstract class and override the onReceive()
+  2. Registering a broadcast receiver - There are 2 ways to do it.
+      1. By defining it in the AndroidManifest.xml  
+      2. By defining it programmatically - Create an `IntentFilter` and register the receiver by calling `registerReceiver(BroadcastReceiver, IntentFilter)`
+  
+* **What is the problem with AsyncTask?**
+  It's goal was to make background Threads which could interact with Main(UI) thread. The most common use of async task is to have it runs a time-consuming operation that updates a portion of the UI when it's completed (in AsyncTask.onPostExecute()).
+  Async task is the major cause of memory leaks. Instead of using this, developers prefer using Coroutines and RxJava with schedulers. 
+  Below are some of the problems:
+  - **Rotation** - When the app is rotated, the activity is destroyed and recreated. When the activity is restarted your AsyncTask's reference to the activity is invalid, so onPostExecute() will have no effect on the new activity. This can be confusing if you are implicitly referencing the current Activity by having AsyncTask as an inner class of the Activity (memory leaks).The usual solution to this problem is to hold onto a reference to AsyncTask that lasts between configuration changes, which updates the target Activity as it restarts. There are a variety of ways to do this, though they either boil down to using a global holder (such as in the Application object) or passing it through Activity.onRetainNonConfigurationInstance(). For a Fragment-based system, you could use a retained Fragment (via Fragment.setRetainedInstance(true)) to store running AsyncTasks.
+  - **Memory/context leaks** - Even when the actviity that spawned the AsyncTask is dead, still the AsyncTask will continue to run even after exiting the entire application. The only way that an AsyncTask finishes early is if it is canceled via AsyncTask.cancel(). Also, any object references held by the AsyncTask will not be eligible for garbage collection until the task explicitly nulls those references or completes and is itself eligible for GC (garbage collection).If not cancelled it will bog down your app with unnecessary background tasks, or of leaking memory. 
+  - **Error Handling** - No out of the box solution for this. 
+  - **Concurrent AsyncTasks** - If you queue up more than 138 tasks before they can complete, your app will crash. Usually happen when loading bitmaps from net.
+
+
+* **RxJava and AsyncTask**
+
+  In android, all the long running tasks are performed in the background and the result is updated in the main thread. Typically, such tasks are handled by `AsyncTask`. But with this we had to maintain the Threads and Handlers. However, RxJava takes care of threading, synchronizations and thread-safety.<br>
+   `RxJava` is a java based implementation of reactive extensions - a library that follows Reactive programming principles to compose asynchronous and event-based programs by following Observer pattern. Observables and Subscribers are the main building blocks. Observables for emmitting items and Subscribers for consuming the items. 
+   
+* **What is Reactive Programming?**
+
+  It is an event based asynchronous event-based programming. Everything you see is an asynchronous data stream, which can be observed and an action will be taken place when it emits values. You can create data stream out of anything; variable changes, click events, http calls, data storage, errors and what not. When it says asynchronous, that means every code module runs on its own thread thus executing multiple code blocks simultaneously. Therfeore, the amount of time taken to complete all the tasks is equivalent to the longer task in the list.
+  
+* **How RxJava works** <a name="rxjava"></a>
+    * Subscriber subscribes to Observable, then Observable calls Subscriber.onNext() for any number of items, if something goes wrong Subsciber.onError() is called and when the task is finished Subscriber.onCompleted() is called. 
+    * Operators are methods created for solving transformations and handling API calls problems. Some of the **common operators** - Observable, Flowable, Single.
+  <ini>Observable</ini> : Let us consider that We are making an API call and receiving the response. And that response is wrapped inside Observable type so that it can be processed by RxJava operators.
+  <ini>Flowable<ini> : Each operator solves different problem, Flowable solving Backpressure ( Backpressure happens when there are multiple responses come at a speed that observers cannot keep up ). In Flowable, BackPressure is handled using BackPressure Strategies — MISSING, ERROR, BUFFER, DROP, LATEST. BackPressure is Handled by anyone of the mentioned strategies. Flowable is useful when we are making pagination call.
+  <ini>Single</ini> : Single always either emits one value or an error. It returns Latest response for all requests. It is ideal for making search call.
+  
+* **Key components of RxJava**
+  - Observable: Observable is a data stream that do some work and emits data.
+  - Observer: OnContrary to Observable, Observer receives the data emitted by the Observable.
+  - Subscription: The bonding between Observable and Observer is called as Subscription. There can be multiple Observers subscribed to a single Observable.
+  - Operator / Transformation: Operators modifies the data emitted by Observable before an observer receives them.
+  - Schedulers: Schedulers decides the thread on which Observable should emit the data and on which Observer should receives the data i.e background thread, main thread etc.,
+
+* **Schedulers**
+
+  Schedulers basically decides on which thread a task runs, whether main thread or backgournd thread. They are introduced in RxAndroid (AndroidSchedulers.mainThread()) which plays major role in supporting multithreading concept in android applications. List of schedulers: 
+  - Schedulers.io() - Used for CPU-intensive works like network calls, database operations, reading disks/files. Maintaings pool of threads
+  - AndroidSchedulers.mainThread() - provides access to the main thread. Jobs like updating UI, user interaction.
+  
+* **Disposables** - Used to dispose the subscription when Observer no longer wants to listen to Observable. It avoids memory leaks. 
+  
+* **RxJava Notes**
+  - Observer pattern handles event-basd code but it doesn't have the notion of `onComplete` or `onError`. Developers have to remember to cancel the event listener, which otherwise leads to memory leak. Obsesrvable pattern can handle both async and event-based code. In addition to disposing on lifecycle termination event, there are many operators that can cancel an event-based observable. 
+  - What is an Observable?
+  	- Simply a collection that arrives over time
+	- Can be finitie or infinite
+	- OnNext: push (emit) the next value
+	- OnCompleted: No more values to push
+	- OnError: error occured when trying to push
+   - Cancelling an infinite Observable
+  	- TakeUntil: discard any items emitted by an Observable after a second Observable emits an item or terminates
+	- Take: emit only the first n items emitted by an Observable
+	- TakeWhile: discard items emitted by an Observable after a specified condition becomes false
+	- Amb: given two or more source Observables, emit all of the items from only the first of these Observables to emit an item
+  
+  
+* **Converting RxJava to LiveData**
+* **Advantages and Disadvantages of RxJava**
+
+* **Types of observables**
+   - Observable: emit a stream elements (endlessly)
+   - Flowable: emit a stream of elements (endlessly, with backpressure)
+   - Single: emits exactly one element and then completes. Useful when we want to ensure we haven’t got empty outputs.
+   - Maybe: emits zero or one elements. Unlike Single, it can complete without emitting a value. Useful when we have optional emissions (eg. getting a logged user but not signed in yet).
+   - Completable: emits a “complete” event, without emitting any data type, just a success/failure. Useful when carrying out actions that don’t require a specific output (eg. when we make a login or send data).
+   
+* **Types of operators**
+
+  - Filter: Filter items emitted by the source Observable by only emitting those that satisfy a specified predicate
+  - Buffer: Buffer gathers items emitted by an Observable into batches and emit the batch instead of emitting one item at a time.
+  - Debounce: Debounce operators emits items only when a specified timespan is passed. It's usually used when the Observable is rapidly emitting items but you are only interested in receiving them in timely manner (e.g. Instant search).
+  - Zip: combine the values of multiple Observable together through a specific function (eg. attaching a picture to an API result, such as avatar to name).
+  
+* **RxJava map opeartors** [*](https://www.androidhive.info/RxJava/map-flatmap-switchmap-concatmap/)<br>
+  FlatMap, ConcatMap, SwitchMap - instead of returning the modified item, it returns the Observable itself which can emit data again
+  - Map: Used to alter the emitted data. It modifies each item emitted by a source Observable and emits the modified item.
+  - FlatMap:  Used when the order is not important and want to send all the network calls simultaneously
+  - ConcatMap: Unlike FlatMap, maintains the order of items and waits for the current Observable to complete its job before emitting the next one. more suitable when you want to maintain the order of execution.
+  - SwitchMap: Used when you want to discard the response and consider the latest one. It unsubscribe from previous source Observable whenever new item started emitting, thus always emitting the items from current Observable (e.g. Instant search).
+  
+* **What is backpressure?**
+
+	Basically a backpressure strategy indicates what to do with emitted items if they can’t be processed as fast as they are received. We can imagine, for instance, a flowable that sends gyroscope data with a really fast frequency and we need to apply a strong computation algorithm over each emitted item.<br>
+	If the type spend for the algorithm is considerably higher than the time between each item’s emission, then backpressure strategy is applied. (If we use an Observable instead of a Flowable, then we will have a backpressure exception. The available options are drop, buffer, latest.
+	
+* **Coroutines** <a name="coroutines"></a>
+
+  Coroutines = Co + Routines. Here, **Co** means cooperation and **Routines** means functions. It means that when functions cooperate with each other, we call it as Coroutines. It's an optimized framework written over the actual threading by taking advantage of the cooperative nature of functions to make it light and yet powerful. So, we can say Coroutines are lightweight threads. A lightweight thread means it doesn't map on native thread (stackless), so it doesn't require context switching on the processor, so they are faster. Coroutines do not replace threads, it’s more like a framework to manage it.<br>
+  Coroutines are able to perform long-running and intensive tasks by suspending execution without blocking the thread and then resuming the execution at some time later. It allows the creation of non-blocking asynchronous code that appears to be synchronous.<br>
+ Creating coroutines doesn’t allocate new threads (no memory allocated). Instead, they use predefined thread pools and smart scheduling for the purpose of which task to execute next and which tasks later.
+ 
+* **Why we need coroutines?**
+  
+  We have many async tools like RxJava, AsyncTasks, Jobs, Threads, but why there is a need to learn something new?<br>
+  While Using Rx, it requires a lot of effort to get it enough, to use it safely. On the Other hand, AsyncTasks and threads can easily introduce leaks and memory overhead. Even using these tools after so many disadvantages, the code can suffer from callbacks, which can introduce tons of extra code. Not only that, but the code also becomes unreadable as it has many callbacks which ultimately slow down or hang the device leading to poor user experience.<br>
+  With coroutines we can launch thousandes of coroutine jobs and we can also suspend the function. We also can define scopes with the coroutine job.
+  
+* **Coroutine Features**
+
+  - Lightweight: You can run many coroutines on a single thread due to support for suspension, which doesn't block the thread where the coroutine is running. Suspending saves memory over blocking while supporting many concurrent operations.
+  - Fewer memory leaks: Use structured concurrency to run operations within a scope.
+  - Built-in cancellation support: Cancellation is propagated automatically through the running coroutine hierarchy.
+  - Jetpack integration: Many Jetpack libraries include extensions that provide full coroutines support. Some libraries also provide their own coroutine scope that you can use for structured concurrency.
+  - RxJava works on android and Java. Coroutines are based on Kotlin. 
+  - RXjava based on Observer pattern and well designed library and more complex. Greater learning curve. 
+  
+* **Coroutines vs Thread**
+  - Fetching the data from one thread and passing it to another thread takes a lot of time. It also introduces lots of callbacks, leading to less readability of code. On the other hand, coroutines eliminate callbacks.
+  - Creating and stopping a thread is an expensive job, as it involves creating their own stacks.,whereas creating coroutines is very cheap when compared to the performance it offers. coroutines do not have their own stack.
+  - Threads are blocking, whereas coroutines are suspendable. 
+  - Coroutines offer a very high level of concurrency. When a coroutine reaches a suspension point, the thread is returned back to its pool, so it can be used by another coroutine or by another process. When the suspension is over, the coroutine resumes on a free thread in the pool. At the moment when a coroutine suspends, the Kotlin runtime finds another coroutine to resume its execution.
+  - Coroutines, unlike threads, also don’t need a lot of memory, just some bytes.Because of this, you can start many more coroutines than threadsBecause of this, you can start many more coroutines than threads. Each thread on a JVM consumes about 1MB of memory.
+  
+* **Coroutine Scopes**
+  - @CoroutineScope
+  - @GlobalScope
+  - @LifecycleScope
+  - ViewModelScope
+  
+* **Dispatchers**
+
+  Dispatchers help coroutines in deciding the thread on which the work has to be done. Dispatchers are passed as the arguments to the GlobalScope by mentioning which type of dispatchers we can use depending on the work that we want the coroutine to do. If not mentioned in the GlobalScope, then it cannot be predicted, sometimes it is DefaultDispatcher-worker-1, or DefaultDispatcher-worker-2 or DefaultDispatcher-worker-3.
+  - Dispatchers.Main: Starts the coroutine in the main thread. for example when you update the UI.
+  - Dispatchers.IO: Starts the coroutine in the IO thread. Used for input/output work (e.g. network call, reading from or wrtiing to database, writing to file).
+  - Dispatchers.Default: Starts the coroutine in the Default Thread. Used to do Complex and long-running calculations and uses the same dispatcher as GlobalScope.launch { … }
+  - Dispatchers.Unconfined:  not confined to any specific thread. It executes the initial continuation of a coroutine in the current call-frame and lets the coroutine resume in whatever thread that is used by the corresponding suspending function
+  
+* **Difference b/w launch/join and async/await in Kotlin Coroutines**
+  - `launch` do not return any object and is used to fire and forget coroutine. It's like starting a new thread. If the code inside the `launch` terminates with exception, then it is treated like uncaught exception in a thread.`join` is used to wait for completion of the launched coroutine and it does not propagate its exception. However, a crashed child coroutine cancels its parent with the corresponding exception, too. async retruns the result.
+
+  
+## App Data <a name="data"></a>
+
+* **Shared Preference and Sqlite**
+  
+  There are 4 ways to store data locally - Shared preference, Sqlite, Cotent Providers, External/Internal storage.<br>
+  &nbsp;&nbsp;&nbsp;We use shared preference for saving small amount of data like app setting (theme), login status, user preference (notification status). It saves the data in form of key value pair and hence we can save only primitive type data like string, boolean, integers etc but we cannot store an object. Whereas, Sqlite is a relational database where we can store huge amount of data.
+  
+* **Components of RoomDB**
+
+  - The database class that holds the database and serves as the main access point for the underlying connection to your app's persisted data.
+  - Data entities that represent tables in your app's database.
+  - Data access objects (DAOs) that provide methods that your app can use to query, update, insert, and delete data in the database.
+
+
+* **RoomDB vs Sqlite**
+  1. In the room there is sql verification done at compile time
+  2. When schema changes you need to upgrade the affected sql queries Room solve this problem very easily
+  3. We have to write lot of boiler plate code to convert sql queries and java object but room maps our database object to java object without any boiler plate code
+  4. Room is built to work with live data and Rxjava for data observation while sqlite does not
+  
+  
+* **What is content provider?**
+
+  Content providers are used when there is a need to share data between multiple applications as Android-databases (Sqlite) created in Android are visible only to the application that created them.It let you centralize content in one place and different applications can access it. When you want to access data in a content provider, you use the ContentResolver object in your application's Context to communicate with the provider as a client. The ContentResolver methods provide the basic "CRUD" (create, retrieve, update, and delete) functions of persistent storage. In most cases this data is stored in an SQlite database. The CursorLoader objects rely on content providers to run asynchronous queries and then return the results to the UI layer in your application.<br>
+  Actvity/Fragment <---> CursorLoader <---> ContentResolver <---> ContentProvider <---> DataStorage
+  
+* **Advantages of content providers**
+  - Content providers offer granular control over the permissions for accessing data.
+  - extra level of abstraction over your data to make it easier to change internally (changing underlying database structure).
+
+## Firebase <a name="firebase"></a>
+
+* **Firebase**
+  
+  Firebase is a toolset to buil, improve and grow applications (ios, android, web) cross platform and gives you services that normally a developer would have to build themselves. This includes authentication, databases, analytics, push notifications. The services are hosted in cloud, and scale with little to no effort.
+  
+* **Firebase Cloud messaging**
+
+  Firebase Cloud Messaging (FCM) is a set of tools that sends push notifications and small messages upto 4kb in various platforms: Android, iOS, and web. Firebase is one of the simplest method to get notification. We as android developers prefer this method as this is very efficient and will not drain the battery of the device like polling (constantly requesting backend service for updates). 
+  Following is the architecture of the FCM:-
+    1. A service, API or console that sends messages to targeted devices.
+    2. The Firebase Cloud Messaging back end, where all the processing happens.
+    3. A transport layer that’s specific to each platform. In Android’s case, this is called the Android Transport Layer.
+    4. The SDK on the device where you’ll receive the messages. In this case, called the Android Firebase Cloud Messaging SDK.
+    
+* **Push Notification using FCM** [*](https://blog.mindorks.com/pushing-notifications-in-android-using-fcm)
+	
+	So, when a device is registered to FCM server (on initial startup), we receive a registration token that is used to establish a connection with the FCM server. We access this token by creating a service class which extends `FirebaseMessagingService` and adds it to the Manifest file. To generate the token we need to call 
+```
+FirebaseInstanceId.getInstance().instanceId
+      .addOnCompleteListener(OnCompleteListener { task ->
+val token = task.result?.token
+})
+```
+These unique tokens change when the user  uninstalls/reinstall s,... So we need to generate a new token which is done by overriding `onNewToken()`. Then, we can send it to the backend server where we can save it  and use it to send a notification later. `onMessageReceived()` is called when a message is received from FCM and we can wirite all the logic like generating & handling notification inside this method. 
+
+## Best Practices <a name="practices"></a>
+
+### Dependency Injection <a name="DI"></a>
 
 * **Dependency Injection**
 
@@ -464,181 +707,9 @@ public final class ApplicationContextModule {
 }
 ```
 Hilt provides the ApplicationContextModule by default and it is followed by the whole application’s lifecycle. By annotating the `@HiltAndroidApp` annotation, an instance of the App will be injected into that module internally. So we don’t need to inject the instance of the application in the App class.
-  
-* **Coroutines**
 
-  Coroutines = Co + Routines. Here, **Co** means cooperation and **Routines** means functions. It means that when functions cooperate with each other, we call it as Coroutines. It's an optimized framework written over the actual threading by taking advantage of the cooperative nature of functions to make it light and yet powerful. So, we can say Coroutines are lightweight threads. A lightweight thread means it doesn't map on native thread (stackless), so it doesn't require context switching on the processor, so they are faster. Coroutines do not replace threads, it’s more like a framework to manage it.<br>
-  Coroutines are able to perform long-running and intensive tasks by suspending execution without blocking the thread and then resuming the execution at some time later. It allows the creation of non-blocking asynchronous code that appears to be synchronous.<br>
- Creating coroutines doesn’t allocate new threads (no memory allocated). Instead, they use predefined thread pools and smart scheduling for the purpose of which task to execute next and which tasks later.
- 
-* **Why we need coroutines?**
-  
-  We have many async tools like RxJava, AsyncTasks, Jobs, Threads, but why there is a need to learn something new?<br>
-  While Using Rx, it requires a lot of effort to get it enough, to use it safely. On the Other hand, AsyncTasks and threads can easily introduce leaks and memory overhead. Even using these tools after so many disadvantages, the code can suffer from callbacks, which can introduce tons of extra code. Not only that, but the code also becomes unreadable as it has many callbacks which ultimately slow down or hang the device leading to poor user experience.<br>
-  With coroutines we can launch thousandes of coroutine jobs and we can also suspend the function. We also can define scopes with the coroutine job.
-  
-* **Coroutine Features**
+### Testing <a name="testing"></a>
 
-  - Lightweight: You can run many coroutines on a single thread due to support for suspension, which doesn't block the thread where the coroutine is running. Suspending saves memory over blocking while supporting many concurrent operations.
-  - Fewer memory leaks: Use structured concurrency to run operations within a scope.
-  - Built-in cancellation support: Cancellation is propagated automatically through the running coroutine hierarchy.
-  - Jetpack integration: Many Jetpack libraries include extensions that provide full coroutines support. Some libraries also provide their own coroutine scope that you can use for structured concurrency.
-  - RxJava works on android and Java. Coroutines are based on Kotlin. 
-  - RXjava based on Observer pattern and well designed library and more complex. Greater learning curve. 
-  
-* **Coroutines vs Thread**
-  - Fetching the data from one thread and passing it to another thread takes a lot of time. It also introduces lots of callbacks, leading to less readability of code. On the other hand, coroutines eliminate callbacks.
-  - Creating and stopping a thread is an expensive job, as it involves creating their own stacks.,whereas creating coroutines is very cheap when compared to the performance it offers. coroutines do not have their own stack.
-  - Threads are blocking, whereas coroutines are suspendable. 
-  - Coroutines offer a very high level of concurrency. When a coroutine reaches a suspension point, the thread is returned back to its pool, so it can be used by another coroutine or by another process. When the suspension is over, the coroutine resumes on a free thread in the pool. At the moment when a coroutine suspends, the Kotlin runtime finds another coroutine to resume its execution.
-  - Coroutines, unlike threads, also don’t need a lot of memory, just some bytes.Because of this, you can start many more coroutines than threadsBecause of this, you can start many more coroutines than threads. Each thread on a JVM consumes about 1MB of memory.
-  
-* **Coroutine Scopes**
-  - @CoroutineScope
-  - @GlobalScope
-  - @LifecycleScope
-  - ViewModelScope
-  
-* **Dispatchers**
-
-  Dispatchers help coroutines in deciding the thread on which the work has to be done. Dispatchers are passed as the arguments to the GlobalScope by mentioning which type of dispatchers we can use depending on the work that we want the coroutine to do. If not mentioned in the GlobalScope, then it cannot be predicted, sometimes it is DefaultDispatcher-worker-1, or DefaultDispatcher-worker-2 or DefaultDispatcher-worker-3.
-  - Dispatchers.Main: Starts the coroutine in the main thread. for example when you update the UI.
-  - Dispatchers.IO: Starts the coroutine in the IO thread. Used for input/output work (e.g. network call, reading from or wrtiing to database, writing to file).
-  - Dispatchers.Default: Starts the coroutine in the Default Thread. Used to do Complex and long-running calculations and uses the same dispatcher as GlobalScope.launch { … }
-  - Dispatchers.Unconfined:  not confined to any specific thread. It executes the initial continuation of a coroutine in the current call-frame and lets the coroutine resume in whatever thread that is used by the corresponding suspending function
-  
-* **Difference b/w launch/join and async/await in Kotlin Coroutines**
-  - `launch` do not return any object and is used to fire and forget coroutine. It's like starting a new thread. If the code inside the `launch` terminates with exception, then it is treated like uncaught exception in a thread.`join` is used to wait for completion of the launched coroutine and it does not propagate its exception. However, a crashed child coroutine cancels its parent with the corresponding exception, too. async retruns the result.
-
-* **Handler, Thread, Looper, and MessageQueue**
-
-  - Main thread is responsible for handling events from all over the app like callbacks associated with the lifecycle
-  - Handlers: For comomunicating between the threads. It enqueues task in the MessageQueue using Looper and also executes them when the task comes out of the MessageQueue.
-  - Looper: It is a worker that keeps a thread alive, loops through MessageQueue and sends messages to the corresponding handler to process.
-  - Message Queue: It is a queue that has tasks called messages which should be processed
-  Using these handler and Main thread looper works fine, but not good solution as it allocates lot of memory. 
-    1. we need to create a new thread every time we send data to the background
-    2. Every time we need to post data back to the main thread using the handler 
-
-* **What is work manager?**
-  
-  WorkManager is intended for work that is deferrable—that is, not required to run immediately—and required to run reliably even if the app exits or the device restarts. For example:
-  - Sending logs or analytics to backend services
-  - Periodically syncing application data with a server
-  
-* **What is the problem with AsyncTask?**
-  It's goal was to make background Threads which could interact with Main(UI) thread. The most common use of async task is to have it runs a time-consuming operation that updates a portion of the UI when it's completed (in AsyncTask.onPostExecute()).
-  Async task is the major cause of memory leaks. Instead of using this, developers prefer using Coroutines and RxJava with schedulers. 
-  Below are some of the problems:
-  - **Rotation** - When the app is rotated, the activity is destroyed and recreated. When the activity is restarted your AsyncTask's reference to the activity is invalid, so onPostExecute() will have no effect on the new activity. This can be confusing if you are implicitly referencing the current Activity by having AsyncTask as an inner class of the Activity (memory leaks).The usual solution to this problem is to hold onto a reference to AsyncTask that lasts between configuration changes, which updates the target Activity as it restarts. There are a variety of ways to do this, though they either boil down to using a global holder (such as in the Application object) or passing it through Activity.onRetainNonConfigurationInstance(). For a Fragment-based system, you could use a retained Fragment (via Fragment.setRetainedInstance(true)) to store running AsyncTasks.
-  - **Memory/context leaks** - Even when the actviity that spawned the AsyncTask is dead, still the AsyncTask will continue to run even after exiting the entire application. The only way that an AsyncTask finishes early is if it is canceled via AsyncTask.cancel(). Also, any object references held by the AsyncTask will not be eligible for garbage collection until the task explicitly nulls those references or completes and is itself eligible for GC (garbage collection).If not cancelled it will bog down your app with unnecessary background tasks, or of leaking memory. 
-  - **Error Handling** - No out of the box solution for this. 
-  - **Concurrent AsyncTasks** - If you queue up more than 138 tasks before they can complete, your app will crash. Usually happen when loading bitmaps from net.
-
-
-* **RxJava and AsyncTask**
-
-  In android, all the long running tasks are performed in the background and the result is updated in the main thread. Typically, such tasks are handled by `AsyncTask`. But with this we had to maintain the Threads and Handlers. However, RxJava takes care of threading, synchronizations and thread-safety.<br>
-   `RxJava` is a java based implementation of reactive extensions - a library that follows Reactive programming principles to compose asynchronous and event-based programs by following Observer pattern. Observables and Subscribers are the main building blocks. Observables for emmitting items and Subscribers for consuming the items. 
-   
-* **What is Reactive Programming?**
-
-  It is an event based asynchronous event-based programming. Everything you see is an asynchronous data stream, which can be observed and an action will be taken place when it emits values. You can create data stream out of anything; variable changes, click events, http calls, data storage, errors and what not. When it says asynchronous, that means every code module runs on its own thread thus executing multiple code blocks simultaneously. Therfeore, the amount of time taken to complete all the tasks is equivalent to the longer task in the list.
-  
-* **How RxJava works**
-    * Subscriber subscribes to Observable, then Observable calls Subscriber.onNext() for any number of items, if something goes wrong Subsciber.onError() is called and when the task is finished Subscriber.onCompleted() is called. 
-    * Operators are methods created for solving transformations and handling API calls problems. Some of the **common operators** - Observable, Flowable, Single.
-  <ini>Observable</ini> : Let us consider that We are making an API call and receiving the response. And that response is wrapped inside Observable type so that it can be processed by RxJava operators.
-  <ini>Flowable<ini> : Each operator solves different problem, Flowable solving Backpressure ( Backpressure happens when there are multiple responses come at a speed that observers cannot keep up ). In Flowable, BackPressure is handled using BackPressure Strategies — MISSING, ERROR, BUFFER, DROP, LATEST. BackPressure is Handled by anyone of the mentioned strategies. Flowable is useful when we are making pagination call.
-  <ini>Single</ini> : Single always either emits one value or an error. It returns Latest response for all requests. It is ideal for making search call.
-  
-* **Key components of RxJava**
-  - Observable: Observable is a data stream that do some work and emits data.
-  - Observer: OnContrary to Observable, Observer receives the data emitted by the Observable.
-  - Subscription: The bonding between Observable and Observer is called as Subscription. There can be multiple Observers subscribed to a single Observable.
-  - Operator / Transformation: Operators modifies the data emitted by Observable before an observer receives them.
-  - Schedulers: Schedulers decides the thread on which Observable should emit the data and on which Observer should receives the data i.e background thread, main thread etc.,
-
-* **Schedulers**
-
-  Schedulers basically decides on which thread a task runs, whether main thread or backgournd thread. They are introduced in RxAndroid (AndroidSchedulers.mainThread()) which plays major role in supporting multithreading concept in android applications. List of schedulers: 
-  - Schedulers.io() - Used for CPU-intensive works like network calls, database operations, reading disks/files. Maintaings pool of threads
-  - AndroidSchedulers.mainThread() - provides access to the main thread. Jobs like updating UI, user interaction.
-  
-* **Disposables** - Used to dispose the subscription when Observer no longer wants to listen to Observable. It avoids memory leaks. 
-  
-* **RxJava Notes**
-  - Observer pattern handles event-basd code but it doesn't have the notion of `onComplete` or `onError`. Developers have to remember to cancel the event listener, which otherwise leads to memory leak. Obsesrvable pattern can handle both async and event-based code. In addition to disposing on lifecycle termination event, there are many operators that can cancel an event-based observable. 
-  - What is an Observable?
-  	- Simply a collection that arrives over time
-	- Can be finitie or infinite
-	- OnNext: push (emit) the next value
-	- OnCompleted: No more values to push
-	- OnError: error occured when trying to push
-   - Cancelling an infinite Observable
-  	- TakeUntil: discard any items emitted by an Observable after a second Observable emits an item or terminates
-	- Take: emit only the first n items emitted by an Observable
-	- TakeWhile: discard items emitted by an Observable after a specified condition becomes false
-	- Amb: given two or more source Observables, emit all of the items from only the first of these Observables to emit an item
-  
-  
-* **Converting RxJava to LiveData**
-* **Advantages and Disadvantages of RxJava**
-
-* **Types of observables**
-   - Observable: emit a stream elements (endlessly)
-   - Flowable: emit a stream of elements (endlessly, with backpressure)
-   - Single: emits exactly one element and then completes. Useful when we want to ensure we haven’t got empty outputs.
-   - Maybe: emits zero or one elements. Unlike Single, it can complete without emitting a value. Useful when we have optional emissions (eg. getting a logged user but not signed in yet).
-   - Completable: emits a “complete” event, without emitting any data type, just a success/failure. Useful when carrying out actions that don’t require a specific output (eg. when we make a login or send data).
-   
-* **Types of operators**
-
-  - Filter: Filter items emitted by the source Observable by only emitting those that satisfy a specified predicate
-  - Buffer: Buffer gathers items emitted by an Observable into batches and emit the batch instead of emitting one item at a time.
-  - Debounce: Debounce operators emits items only when a specified timespan is passed. It's usually used when the Observable is rapidly emitting items but you are only interested in receiving them in timely manner (e.g. Instant search).
-  - Zip: combine the values of multiple Observable together through a specific function (eg. attaching a picture to an API result, such as avatar to name).
-  
-* **RxJava map opeartors** [*](https://www.androidhive.info/RxJava/map-flatmap-switchmap-concatmap/)<br>
-  FlatMap, ConcatMap, SwitchMap - instead of returning the modified item, it returns the Observable itself which can emit data again
-  - Map: Used to alter the emitted data. It modifies each item emitted by a source Observable and emits the modified item.
-  - FlatMap:  Used when the order is not important and want to send all the network calls simultaneously
-  - ConcatMap: Unlike FlatMap, maintains the order of items and waits for the current Observable to complete its job before emitting the next one. more suitable when you want to maintain the order of execution.
-  - SwitchMap: Used when you want to discard the response and consider the latest one. It unsubscribe from previous source Observable whenever new item started emitting, thus always emitting the items from current Observable (e.g. Instant search).
-  
-* **What is backpressure?**
-
-	Basically a backpressure strategy indicates what to do with emitted items if they can’t be processed as fast as they are received. We can imagine, for instance, a flowable that sends gyroscope data with a really fast frequency and we need to apply a strong computation algorithm over each emitted item.<br>
-
-	If the type spend for the algorithm is considerably higher than the time between each item’s emission, then backpressure strategy is applied. (If we use an Observable instead of a Flowable, then we will have a backpressure exception. The available options are drop, buffer, latest.
-
-
-* **Firebase**
-  
-  Firebase is a toolset to buil, improve and grow applications (ios, android, web) cross platform and gives you services that normally a developer would have to build themselves. This includes authentication, databases, analytics, push notifications. The services are hosted in cloud, and scale with little to no effort.
-  
-* **Firebase Cloud messaging**
-
-  Firebase Cloud Messaging (FCM) is a set of tools that sends push notifications and small messages upto 4kb in various platforms: Android, iOS, and web. Firebase is one of the simplest method to get notification. We as android developers prefer this method as this is very efficient and will not drain the battery of the device like polling (constantly requesting backend service for updates). 
-  Following is the architecture of the FCM:-
-    1. A service, API or console that sends messages to targeted devices.
-    2. The Firebase Cloud Messaging back end, where all the processing happens.
-    3. A transport layer that’s specific to each platform. In Android’s case, this is called the Android Transport Layer.
-    4. The SDK on the device where you’ll receive the messages. In this case, called the Android Firebase Cloud Messaging SDK.
-    
-* **Push Notification using FCM** [*](https://blog.mindorks.com/pushing-notifications-in-android-using-fcm)
-	
-	So, when a device is registered to FCM server (on initial startup), we receive a registration token that is used to establish a connection with the FCM server. We access this token by creating a service class which extends `FirebaseMessagingService` and adds it to the Manifest file. To generate the token we need to call 
-```
-FirebaseInstanceId.getInstance().instanceId
-      .addOnCompleteListener(OnCompleteListener { task ->
-val token = task.result?.token
-})
-```
-These unique tokens change when the user  uninstalls/reinstall s,... So we need to generate a new token which is done by overriding `onNewToken()`. Then, we can send it to the backend server where we can save it  and use it to send a notification later. `onMessageReceived()` is called when a message is received from FCM and we can wirite all the logic like generating & handling notification inside this method. 
-  
-* **Performance Issues** - memory, UI, thread, battery
-    
 * **What is TDD?**
 
   Test Driven Development - Developing something that is driven by test. We describe each unit of the system through a failing test and make it pass with an implementation. The test will serve as a guidline of what to build
@@ -657,7 +728,22 @@ These unique tokens change when the user  uninstalls/reinstall s,... So we need 
   - Mock: A mock is a dummy class replacing a real one, returning something like null or 0 for each method call.
   - Stub: A stub is a dummy class providing some more specific, prepared or pre-recorded, replayed results to certain requests under test. 
   - Spy: A spy is kind of a hybrid between real object and stub, i.e. it is basically the real object with some (not all) methods shadowed by stub methods.
-   
+  
+* **PowerMock**
+  - static, final and private methods
+  - remove static initializers
+  - allow mocking without dependency injection
+
+* **Continuous Integration/ Continuous Deployment (CI/CD)**
+  - Pipeline: CI and CD are often represented as a pipeline, where new code enters on one end, flows through a series of stages (build, test, staging, production), and published as a new production release to end users on the other end.
+  - CI: It is a process where developers integrate their code into the master/main branch. Each merge triggers an automated code build and test sequence, which ideally runs in less than 10 minutes. A successful CI build may lead to further stages of continuous delivery.
+  - CD: every change in the source code is deployed to production automatically
+
+  
+### Performance <a name="performance"></a>
+
+* **Performance Issues** - memory, UI, thread, battery
+    
 * **Memory Management**
   
   In Android, bitmaps represent the largest contiguous blocks of memory. They occupy heaps, which results in lots of contention to find free space to allocate new bitmaps as we scroll.This then results in more GC events so it can free up memory to provide the necessary space.
@@ -722,42 +808,6 @@ These unique tokens change when the user  uninstalls/reinstall s,... So we need 
   - Memory Cache: It keeps the data in the memory of the application. If the application gets killed, the data is removed. Useful only in the same session of application usage. Memory cache is the fastest cache to get the data as this is in memory.
   - Disk Cache: It saves the data to the disk. If the application gets killed, the data is retained. Useful even after the application restarts. Slower than memory cache, as this is I/O operation.
   
-* **Advantages of Caching**
-  - Reduce network calls: We can reduce the network calls by caching the network response.
-  - Fetch the data very fast
-
-* **Continuous Integration/ Continuous Deployment (CI/CD)**
-  - Pipeline: CI and CD are often represented as a pipeline, where new code enters on one end, flows through a series of stages (build, test, staging, production), and published as a new production release to end users on the other end.
-  - CI: It is a process where developers integrate their code into the master/main branch. Each merge triggers an automated code build and test sequence, which ideally runs in less than 10 minutes. A successful CI build may lead to further stages of continuous delivery.
-  - CD: every change in the source code is deployed to production automatically
-  
-  
-* **Data Store**
-  
-  Jetpack DataStore is a data storage solution that allows you to store key-value pairs (like `SharedPreferences`) or typed objects with protocol buffers. DataStore uses Kotlin coroutines and Flow to store data asynchronously, consistently, and transactionally. DataStore is ideal for small, simple datasets and is a replacement for SharedPreferences.
-
-* **DataStore vs SharedPreferences** [*](https://blog.mindorks.com/jetpack-datastore-preferences)
-  - `SharedPreference` has some drawbacks like it provided synchronous APIs -but it’s not MAIN-thread-safe! whereas DataStore is safe to use in UI thread because it uses `Dispatchers.IO` under the hood
-  - DataStore Preferences support Kotlin Coroutines Flow API by default.
-  - It’s safe from runtime exceptions
-  - It also provides a way to migrate from `SharedPreferences`
-  - It provides Type safety (Using Protocol buffers)
-  
-* **Paging**
-  - Don't require the consumer to download all the data at once. Loading partial data on demand reduces usage of network bandwidth and system resources.
-  
-* **Navigation**
-  
-  The navigation component helps you to manage navigations, fragment transactions, backstack, animations, most importantly deeplinking(don't have to use intent-filters). A navigation graph is a resource file that represents all of your app's navigation paths.
-
-* **Lazy vs lateinit**
-  - `lazy { ... }` delegate can only be used for `val` properties, whereas `lateinit` can only be applied to `var`s, because it can't be compiled to a `field`, thus no immutability can be guaranteed
-  - lateinit var has a backing field which stores the value, and by lazy { ... } creates a delegate object in which the value is stored once calculated, stores the reference to the delegate instance in the class object and generates the getter for the property that works with the delegate instance. So if you need the backing field present in the class, use lateinit;
-  
-* **Inline function**
-
-  So, calling non-inline function and passing a lambda to it will always create an instance of an object. But when we use the keyword 'inline', no new instance is created, instead, the code around the invocation of block inside the inlined function will be copied to the call site. Inlining works best for functions with parameters of functional types or lambdas(Higher-order functions). You wouldn't want to inline by default: Inlining may cause the generated code to grow; however, if we do it in a reasonable way (i.e. avoiding inlining large functions), it will pay off in performance
-
 * **Product Flavor**
 
   Feature of Gradle plugin in Android Studio. (eg paid and free app). Both share common source code and resources. At the same time they both can have different features, device requirements and resources. 
@@ -775,11 +825,6 @@ These unique tokens change when the user  uninstalls/reinstall s,... So we need 
     }
   }
   
-* **PowerMock**
-  - static, final and private methods
-  - remove static initializers
-  - allow mocking without dependency injection
-  
 * **What is REST API?**
 
   REST stands for REpresentational State Transfer. It is an architectural style that defines constraints for creating web services. It is stateless, i.e, no client session data is stored on the server (eg. Once you make an authentication, you have to repeat every time you make a call).
@@ -795,7 +840,7 @@ These unique tokens change when the user  uninstalls/reinstall s,... So we need 
    Any performance issues - are there any memory leaks, threads, battery, UI	
    
      
-* **How does you take updated with latest technology**
+* **How does you take updated with latest technology?**
   
   Google IO conference - 2019: Introduced dark theme, smart replies - , video captioning in video calls
   News letters, website - ProAndroid, 
