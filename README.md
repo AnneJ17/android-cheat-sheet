@@ -6,23 +6,25 @@
 3. [Intent & Intent Filters](#intents)
 4. [Services](#services)
 5. [Architecture Components](#components)
-    1. [DataStore](#datastore)
-    2. [LiveData](#livedata)
-    3. [ViewModel](#viewmodel)
-    4. [DataBinding](#databinding)
-    5. [Paging](#paging)
-    6. [Navigation](#navigation)
-    7. [WorkManager](#workmanager)
-6. [Background Tasks](#tasks)
-    1. [Broadcast](#broadcast)
-    2. [RxJava](#rxjava)
-    3. [Coroutines](#coroutines)
-7. [App Data](#data)
-8. [Firebase](#firebase)
-9. [Best Practices](#practices)
-    1. [Dependency Injection](#DI)
-    2. [Testing](#testing)
-    3. [Performance](#performance)
+    * [DataStore](#datastore)
+    * [LiveData](#livedata)
+    * [ViewModel](#viewmodel)
+    * [DataBinding](#databinding)
+    * [Paging](#paging)
+    * [Navigation](#navigation)
+    * [WorkManager](#workmanager)
+6. [Design Patterns](#patterns)
+7. [Background Tasks](#tasks)
+    *  [Broadcast](#broadcast)
+    *  [RxJava](#rxjava)
+    *  [Coroutines](#coroutines)
+8. [App Data](#data)
+9. [Firebase](#firebase)
+10. [Best Practices](#practices)
+    *  [Dependency Injection](#DI)
+    *  [Testing](#testing)
+    *  [Performance](#performance)
+    *  [Accessibility](#accessibility)
 
 ## App Basics <a name="basics"></a>
 
@@ -50,7 +52,7 @@
  
 * **APK file**
   
-  An android project is composed of Java code, app resources, and the manifest file. Gradle starts the build by compiling an app's Java files into Dex bytecode. Gradle zips the Dex bytecode, the app resources, and manifest into a single APK file. The APK file can be installed on an android emulator or an android device, or the APK can be published in Google Play Store where others can download the app.
+  An android project is composed of Java code, app resources, and the manifest file. Gradle starts the build by compiling an app's Java files into Dex bytecode and resources folder into single class file called R.java using the aapt (android asset packaging tool) tool. Gradle zips the Dex bytecode, the app resources, and manifest into a single APK file. The APK file can be installed on an android emulator or an android device, or the APK can be published in Google Play Store where others can download the app.
   
 * **Android SDK**
   
@@ -106,9 +108,15 @@ When you call such a function on an object with a lambda expression provided, it
   
   Launch mode is an instruction denoting how an activity should be launched. There are 4 modes:-
     1. standard: This is the default mode where the system creates a new instance of the activity in the target task or routes intent to it.
+      - Example: Suppose there is an activity stack of A -> B -> C. Now again launching activity B with “standard” launch mode, the new stack will be A -> B -> C -> B.
     2. singleTop: Activity will be created once and will be on top. If an instance of the activity already exists at the top of the target task, the system routes the intent to that instance through a call to its onNewIntent() method. 
+      - Example: Suppose we have an activity stack of A -> B -> C -> D and C is launched. As it is not on top, a new instance of C will be created. So it will look like A -> B -> C -> D -> C. But if D was launced instead, a new instance of D will not be created rather we will receive the callback on onNewIntent() method.
     3. singleTask: Here, no multiple instances are created. The system creates the activity at the root of a new task and routes the intent to it. 
-    4. singleInstance: No multiple instances,Same as "singleTask", except that the system doesn't launch any other activities into the task holding the instance.
+      - Example: Suppose there is an activity stack of A -> B -> C and activity D is launched. Then the stack will be A -> B -> C -> D (Here D launch as usual)
+      - Suppose there is an activity stack of A -> B -> C -> D. State of Activity Stack after launch B activity will be A -> B (Here old instance gets called and intent data route through onNewIntent() callback)
+    4. singleInstance: No multiple instances, same as "singleTask", except that the system doesn't launch any other activities into the task holding the instance.
+      - Suppose state of activity stack is A -> B -> C. After launch D activity of "launch mode = singleInstance", the state will be Task1 — A -> B -> C, Task2 — D (here D will be in different task).
+      - Now if you continue this and start E and D then Stack will look like -> Task1 — A -> B -> C -> E, Task2 — D
     
 * **singleTask vs singleInstance**
   
@@ -335,11 +343,31 @@ When you call such a function on an object with a lambda expression provided, it
   - LiveData is somewhat similar to RxJava except that LiveData is lifecycle aware. LiveData excel on ViewModel layer, with its tight integration with Android lifecycles and ViewModel. Another advantage is that they automatically subscribe and unsubscribe on Activity life cycle events. LiveData does not give freedom to choose thread - only have current and UI thread and only one direction of switch "from current to UI". If a background service send a notification to a live data object it must use `postValue` method to ensure the value change is observed in the main thread.
   - RxJava provide more capabilities in transformations. We use RxJava in data source and repository layers, and it's transformed into LiveData (using LiveDataReactiveStreams) in ViewModels (before exposing data to activities/fragments). RxJava’s approach to choose a thread during the subscription, not in time of the sending is much more appropriate. Unlike LiveData, you have to explicitly subscribe and unsubscribe - in `onResume` we can do `compositeDisposable.add(...)` and `onPause` we do `CompositeDisposable.dispose`. 
   
+  
+* **ViewModel** <a name="viewmodel"></a>
+
+	ViewModel is one of the major component of MVVM pattern. ViewModel class is designed to store and manage UI-related data in a lifecycle conscious way. The ViewModel class allows data to survive device configuration changes(screen rotations, changes to keyboard availability). ViewModel is responsible for wrapping the model and preparing observable data needed by the view. It also provides hooks for the view to pass events to the model. The ViewModel is not tied to the view or Lifecycle objects which makes testing much easier.
+	
+* **Implementing ViewModel** [*](https://medium.com/androiddevelopers/viewmodels-a-simple-example-ed5ac416317e)
+  1. Separate out your data from your UI controller(activity/fragment) by creating a class that extends ViewModel
+  2. Set up communications between your ViewModel and your UI controller - create a member variable for your ViewModel in the UI Controller (ViewModelProviders.of(<Your UI controller>).get(<Your ViewModel>.class)).
+  3. Use your ViewModel in your UI controller - To access or change UI data, you can now use the data in your ViewModel.ViewModel also works very nicely with another Architecture Component, LiveData whic is observable: it can trigger UI updates when the data changes.
+	
+* **How ViewModel retains data?**
+  If the activity is re-created, it receives the same MyViewModel instance that was created by the first activity. When the owner activity is finished, the framework calls the ViewModel objects's onCleared() method so that it can clean up resources. ViewModel does not survive low memory or finish() scenarios as clear() method in ViewModelStore get called in onDestroy() of activity or fragment which clears the HashMap except during configuration changes.<br>
+  Check [this article]https://proandroiddev.com/the-curious-case-of-survival-of-viewmodel-afe074992fbc#:~:text=According%20to%20the%20official%20documentation,in%20a%20lifecycle%20conscious%20way.&text=ViewModel%20objects%20are%20automatically%20retained,next%20activity%20or%20fragment%20instance.) for more details.
+	
 * **How does LiveData in the ViewModel update the Activity?**
 
   When we register the Observer in our Activity, we need to override the method onChanged(). The method onChanged() would get trigger whenever the LiveData is changed. Thus in the onChanged(), we can update the changed LiveData onto the View.
   
-* **ViewModel** <a name="viewmodel"></a>
+* **Benefits of ViewModel**
+  - ViewModel survives rotation and other configuration changes
+  - ViewModel keeps running while the activity is on the backstack
+  - ViewModel is lifecycle agnostic. You can `override onCleared` (to clear disposables for example) just before the ViewModel is about to get killed.
+  - ViewModel promotes reactiveness based on state propagated down to the view by letting the view observe the live data inside the ViewModel
+  - ViewModel includes support for Coroutines
+  - ViewModel works with Room and LiveData to replace the loader. Room informs the LiveData when the database changes, and the LiveData, in turn, updates the UI.
   
 * **Data Binding** <a name="databinding"></a> [*](https://medium.com/androiddevelopers/data-binding-lessons-learnt-4fd16576b719)
   
@@ -362,6 +390,8 @@ When you call such a function on an object with a lambda expression provided, it
   - Sending logs or analytics to backend services
   - Periodically syncing application data with a server
   
+## Design Patterns <a name="patterns"></a>
+
 * **MVP vs MVVM**
 
   - MVP - Model View Presenter: Presenter is like a bridge between the view and the model. There is one to one relation between the view and the presenter and therefore is tightly coupled. And is more verbose as each view needs a presenter.<br>
@@ -738,6 +768,10 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
   - Pipeline: CI and CD are often represented as a pipeline, where new code enters on one end, flows through a series of stages (build, test, staging, production), and published as a new production release to end users on the other end.
   - CI: It is a process where developers integrate their code into the master/main branch. Each merge triggers an automated code build and test sequence, which ideally runs in less than 10 minutes. A successful CI build may lead to further stages of continuous delivery.
   - CD: every change in the source code is deployed to production automatically
+  
+* **Lint Tool**
+  
+  The lint tool checks your Android project source files for potential bugs and optimization improvements for correctness, security, performance, usability, accessibility, and internationalization. When using Android Studio, configured lint and IDE inspections run whenever you build your app
 
   
 ### Performance <a name="performance"></a>
@@ -775,23 +809,9 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
 	- Inspect the Java heap and memory allocations with Memory Profiler
 	- Inspect network traffic with Network Profiler
 	- Inspect energy usage with Energy Profiler
-  
-* **Lint Tool**
-  
-  The lint tool checks your Android project source files for potential bugs and optimization improvements for correctness, security, performance, usability, accessibility, and internationalization. When using Android Studio, configured lint and IDE inspections run whenever you build your app
-  
-* **Github vs Git**
+	
+## Accessibility <a name="accessibility"></a>
 
-  Git is a distributed version control system or source code management system. Whereas, gitHub is a hosting service for Git repositories. In short - Git is the tool, GitHub is the service for projects that use Git.
- 
-  
-* **Rebase and merge**
-
-  Rebase - Moving or combining a sequence of commits to a new base commit. For instance, if you started doing some development and then another developer made an unrelated change. You probably want to pull and then rebase to base your changes from the current version from the repository.<br>
-  Merge - Merging two different branches. For example, let's say you have created a branch for the purpose of developing a single feature. When you want to bring those changes back to master, you probably want merge.<br>
-  
-  Differences:
-    - Merge preserves the branches while Rebase won't. 
     
 * **What is Accessibility Service?**
   
@@ -799,6 +819,18 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
   - Switch Access: allows to interact with devices using one or more switches.
   - Voice Access (beta): allows to control a device with spoken commands.
   - Talkback: a screen reader commonly used by visually impaired or blind users.
+  
+* **Github vs Git**
+
+  Git is a distributed version control system or source code management system. Whereas, gitHub is a hosting service for Git repositories. In short - Git is the tool, GitHub is the service for projects that use Git.
+ 
+* **Rebase and merge**
+
+  Rebase - Moving or combining a sequence of commits to a new base commit. For instance, if you started doing some development and then another developer made an unrelated change. You probably want to pull and then rebase to base your changes from the current version from the repository.<br>
+  Merge - Merging two different branches. For example, let's say you have created a branch for the purpose of developing a single feature. When you want to bring those changes back to master, you probably want merge.<br>
+  
+  Differences:
+    - Merge preserves the branches while Rebase won't. 
   
 * **Interceptors**
 
@@ -837,13 +869,7 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
    * Followed Desisign pattern
    * Written enough test cases
    * Any security issues
-   Any performance issues - are there any memory leaks, threads, battery, UI	
-   
-     
-* **How does you take updated with latest technology?**
-  
-  Google IO conference - 2019: Introduced dark theme, smart replies - , video captioning in video calls
-  News letters, website - ProAndroid, 
+   * Any performance issues - are there any memory leaks, threads, battery, UI	
 
 
 :octocat: If you would like to contribute to the Android Cheat Sheet, just make a pull request!
