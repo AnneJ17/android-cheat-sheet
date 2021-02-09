@@ -9,6 +9,7 @@
     * [DataStore](#datastore)
     * [LiveData](#livedata)
     * [ViewModel](#viewmodel)
+    * [ViewBinding](#viewbinding)
     * [DataBinding](#databinding)
     * [Paging](#paging)
     * [Navigation](#navigation)
@@ -25,6 +26,7 @@
     *  [Testing](#testing)
     *  [Performance](#performance)
     *  [Accessibility](#accessibility)
+11. [Miscellaneous](#miscellaneous)
 
 ## App Basics <a name="basics"></a>
 
@@ -355,7 +357,7 @@ When you call such a function on an object with a lambda expression provided, it
 	
 * **How ViewModel retains data?**
   If the activity is re-created, it receives the same MyViewModel instance that was created by the first activity. When the owner activity is finished, the framework calls the ViewModel objects's onCleared() method so that it can clean up resources. ViewModel does not survive low memory or finish() scenarios as clear() method in ViewModelStore get called in onDestroy() of activity or fragment which clears the HashMap except during configuration changes.<br>
-  Check [this article]https://proandroiddev.com/the-curious-case-of-survival-of-viewmodel-afe074992fbc#:~:text=According%20to%20the%20official%20documentation,in%20a%20lifecycle%20conscious%20way.&text=ViewModel%20objects%20are%20automatically%20retained,next%20activity%20or%20fragment%20instance.) for more details.
+  Check [this article](https://proandroiddev.com/the-curious-case-of-survival-of-viewmodel-afe074992fbc#:~:text=According%20to%20the%20official%20documentation,in%20a%20lifecycle%20conscious%20way.&text=ViewModel%20objects%20are%20automatically%20retained,next%20activity%20or%20fragment%20instance.) for more details.
 	
 * **How does LiveData in the ViewModel update the Activity?**
 
@@ -368,6 +370,13 @@ When you call such a function on an object with a lambda expression provided, it
   - ViewModel promotes reactiveness based on state propagated down to the view by letting the view observe the live data inside the ViewModel
   - ViewModel includes support for Coroutines
   - ViewModel works with Room and LiveData to replace the loader. Room informs the LiveData when the database changes, and the LiveData, in turn, updates the UI.
+  
+* **ViewBinding** <a name="viewbinding"></a>
+
+  View binding works with your existing XML, and will generate a binding object for each layout in a module.
+  1. Create binding reference inside your class: `private lateinit var binding YourClassBinding`
+  2. Inflate your binding `binding = YourClassBinding.inflate(layoutInflater)` inside Activity's `onCreate` and call `setContentView(binding.root)`, or inflate it in Fragment's `onCreateView` then return it: `return binding.root`
+  3. Reference views in code via binding using their ids `binding.textView.text = "Hello, world!"`
   
 * **Data Binding** <a name="databinding"></a> [*](https://medium.com/androiddevelopers/data-binding-lessons-learnt-4fd16576b719)
   
@@ -564,7 +573,7 @@ When you call such a function on an object with a lambda expression provided, it
   - @CoroutineScope
   - @GlobalScope
   - @LifecycleScope
-  - ViewModelScope
+  - @ViewModelScope
   
 * **Dispatchers**
 
@@ -810,6 +819,10 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
 	- Inspect network traffic with Network Profiler
 	- Inspect energy usage with Energy Profiler
 	
+* **Caching mechanism**
+  - Memory Cache: It keeps the data in the memory of the application. If the application gets killed, the data is removed. Useful only in the same session of application usage. Memory cache is the fastest cache to get the data as this is in memory.
+  - Disk Cache: It saves the data to the disk. If the application gets killed, the data is retained. Useful even after the application restarts. Slower than memory cache, as this is I/O operation.
+	
 ## Accessibility <a name="accessibility"></a>
 
     
@@ -820,6 +833,12 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
   - Voice Access (beta): allows to control a device with spoken commands.
   - Talkback: a screen reader commonly used by visually impaired or blind users.
   
+## Miscellaneous <a name="miscellaneous"></a>
+
+* **Declarative and Imperative programming**
+  - Declarative programming is a programming paradigm that expresses the logic of a computation without describing its control flow.
+  - Imperative programming is a programming paradigm that uses statements that change a program’s state.
+
 * **Github vs Git**
 
   Git is a distributed version control system or source code management system. Whereas, gitHub is a hosting service for Git repositories. In short - Git is the tool, GitHub is the service for projects that use Git.
@@ -835,10 +854,6 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
 * **Interceptors**
 
    Interceptors are a powerful mechanism that can monitor, rewrite, and retry the API call. So basically, when we do some API call, we can monitor the call or perform some tasks (watch between the client and server). The common use-cases are Logging the errors centrally, Caching the response
-
-* **Caching mechanism**
-  - Memory Cache: It keeps the data in the memory of the application. If the application gets killed, the data is removed. Useful only in the same session of application usage. Memory cache is the fastest cache to get the data as this is in memory.
-  - Disk Cache: It saves the data to the disk. If the application gets killed, the data is retained. Useful even after the application restarts. Slower than memory cache, as this is I/O operation.
   
 * **Product Flavor**
 
@@ -849,13 +864,23 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
   - Single repo in version control
   - common features and bug fixes in one go
   
-  flavorDimensions "default"
-  productFlavors {
-    basic {
-    }
-    premium {
-    }
+  ```
+  android {
+    ...
+     defaultConfig {...}
+     buildTypes {
+        debug{...}
+        release{...}
+     }
+     flavorDimensions "version"
+     productFlavors {
+       basic {
+       }
+       premium {
+       }
+     }
   }
+  ```
   
 * **What is REST API?**
 
@@ -870,6 +895,5 @@ Hilt provides the ApplicationContextModule by default and it is followed by the 
    * Written enough test cases
    * Any security issues
    * Any performance issues - are there any memory leaks, threads, battery, UI	
-
-
-:octocat: If you would like to contribute to the Android Cheat Sheet, just make a pull request!
+____________________________________________________________________________
+<p align="center">:octocat: If you would like to contribute to the Android Cheat Sheet, just make a pull request!</p>
