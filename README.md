@@ -469,7 +469,7 @@ When you call such a function on an object with a lambda expression provided, it
 * **RxJava and AsyncTask**
 
   In android, all the long running tasks are performed in the background and the result is updated in the main thread. Typically, such tasks are handled by `AsyncTask`. But with this we had to maintain the Threads and Handlers. However, RxJava takes care of threading, synchronizations and thread-safety.<br>
-   `RxJava` is a java based implementation of reactive extensions - a library that follows Reactive programming principles to compose asynchronous and event-based programs by following Observer pattern. Observables and Subscribers are the main building blocks. Observables for emmitting items and Subscribers for consuming the items. 
+   `RxJava` is a java based implementation of reactive extensions - a library that follows Reactive programming principles to compose asynchronous and event-based programs by following Observer pattern. Observables and Subscribers are the main building blocks. Observables for emmitting items and Subscribers(observer) for consuming the items. 
    
 * **What is Reactive Programming?**
 
@@ -477,15 +477,16 @@ When you call such a function on an object with a lambda expression provided, it
   
 * **How RxJava works** <a name="rxjava"></a>
     * Subscriber subscribes to Observable, then Observable calls Subscriber.onNext() for any number of items, if something goes wrong Subsciber.onError() is called and when the task is finished Subscriber.onCompleted() is called. 
-    * Operators are methods created for solving transformations and handling API calls problems. Some of the **common operators** - Observable, Flowable, Single.
+    * Operators are methods created for solving transformations and handling API calls problems. Some of the **common operators** - Observable, Flowable, Single, Completable.
   <ini>Observable</ini> : Let us consider that We are making an API call and receiving the response. And that response is wrapped inside Observable type so that it can be processed by RxJava operators.
   <ini>Flowable<ini> : Each operator solves different problem, Flowable solving Backpressure ( Backpressure happens when there are multiple responses come at a speed that observers cannot keep up ). In Flowable, BackPressure is handled using BackPressure Strategies — MISSING, ERROR, BUFFER, DROP, LATEST. BackPressure is Handled by anyone of the mentioned strategies. Flowable is useful when we are making pagination call.
   <ini>Single</ini> : Single always either emits one value or an error. It returns Latest response for all requests. It is ideal for making search call.
+<ini>Completable</ini> : Saving data to db. No return.
   
 * **Key components of RxJava**
   - Observable: Observable is a data stream that do some work and emits data.
   - Observer: OnContrary to Observable, Observer receives the data emitted by the Observable.
-  - Subscription: The bonding between Observable and Observer is called as Subscription. There can be multiple Observers subscribed to a single Observable.
+  - Subscription: The bonding between Observable and Observer is called as Subscription. There can be multiple Observers subscribed to a single Observable. Example, login screen (checking all the fields are entered, each field act as a observable; enabling the button)
   - Operator / Transformation: Operators modifies the data emitted by Observable before an observer receives them.
   - Schedulers: Schedulers decides the thread on which Observable should emit the data and on which Observer should receives the data i.e background thread, main thread etc.,
 
